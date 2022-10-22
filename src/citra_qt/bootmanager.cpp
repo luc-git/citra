@@ -288,6 +288,7 @@ void GRenderWindow::closeEvent(QCloseEvent* event) {
 
 void GRenderWindow::keyPressEvent(QKeyEvent* event) {
     InputCommon::GetKeyboard()->PressKey(event->key());
+    emit KeyPress();
 }
 
 void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
@@ -306,6 +307,7 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
         InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
     }
     emit MouseActivity();
+    emit MousePress();
 }
 
 void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {

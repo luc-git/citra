@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>408</width>
-    <height>436</height>
+    <height>472</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,6 +40,13 @@
          <widget class="QCheckBox" name="toggle_hide_mouse">
           <property name="text">
            <string>Hide mouse on inactivity</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="toggle_confine_mouse_touchscreen">
+          <property name="text">
+           <string>confine mouse touchscreen</string>
           </property>
          </widget>
         </item>
@@ -227,8 +234,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="screenshot_dir_path">
-         </widget>
+         <widget class="QLineEdit" name="screenshot_dir_path"/>
         </item>
         <item>
          <widget class="QToolButton" name="change_screenshot_dir">

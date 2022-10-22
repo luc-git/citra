@@ -79,6 +79,7 @@ void ConfigureGeneral::SetConfiguration() {
 
     ui->toggle_update_check->setChecked(UISettings::values.check_for_update_on_start);
     ui->toggle_auto_update->setChecked(UISettings::values.update_on_close);
+    ui->toggle_confine_mouse_touchscreen->setChecked(UISettings::values.confine_mouse_to_the_touchscreen);
 
     // The first item is "auto-select" with actual value -1, so plus one here will do the trick
     ui->region_combobox->setCurrentIndex(Settings::values.region_value + 1);
@@ -147,6 +148,8 @@ void ConfigureGeneral::ApplyConfiguration() {
     UISettings::values.update_on_close = ui->toggle_auto_update->isChecked();
 
     UISettings::values.screenshot_path = ui->screenshot_dir_path->text();
+    UISettings::values.confine_mouse_to_the_touchscreen =
+        ui->toggle_confine_mouse_touchscreen->isChecked();
 
     Settings::values.region_value = ui->region_combobox->currentIndex() - 1;
 

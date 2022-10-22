@@ -191,6 +191,8 @@ public slots:
     void OnEmulationStarting(EmuThread* emu_thread);
     void OnEmulationStopping();
     void OnFramebufferSizeChanged();
+    void ConfineMouse();
+    void UnconfineMouse();
 
 signals:
     /// Emitted when the window is closed
@@ -203,6 +205,10 @@ signals:
 
     /// Emitted on mouse activity. Used to signal that the mouse should be shown if it's hidden
     void MouseActivity();
+
+    void MousePress();
+
+    void KeyPress();
 
 private:
     std::pair<u32, u32> ScaleTouch(QPointF pos) const;
