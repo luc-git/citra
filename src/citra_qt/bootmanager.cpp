@@ -469,7 +469,8 @@ void GRenderWindow::ConfineMouse() {
     rectangle.right = var.bottom_screen.right;
     rectangle.bottom = var.bottom_screen.bottom;
     rectangle.top = var.bottom_screen.top;
-    if (!fullscreen) {
+    QWidget *widget = GRenderWindow::parentWidget();
+    if (!GetMainWindow()->isFullScreen()) {
         rectangle.bottom += point.y();
         rectangle.top += point.y();
     }
