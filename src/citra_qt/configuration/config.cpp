@@ -631,7 +631,7 @@ void Config::ReadUIValues() {
         ReadSetting(QStringLiteral("pauseWhenInBackground"), false).toBool();
     UISettings::values.hide_mouse =
         ReadSetting(QStringLiteral("hideInactiveMouse"), false).toBool();
-    UISettings::values.hide_mouse = ReadSetting(QStringLiteral("confinemouse"), false).toBool();
+    UISettings::values.hide_mouse = ReadSetting(QStringLiteral("ConfineMouse"), false).toBool();
 
     qt_config->endGroup();
 }
@@ -1116,8 +1116,8 @@ void Config::SaveUIValues() {
     WriteSetting(QStringLiteral("pauseWhenInBackground"),
                  UISettings::values.pause_when_in_background, false);
     WriteSetting(QStringLiteral("hideInactiveMouse"), UISettings::values.hide_mouse, false);
-    WriteSetting(QStringLiteral("confinemouse"),
-                 UISettings::values.confine_mouse_to_the_touchscreen, false);
+    WriteSetting(QStringLiteral("ConfineMouse"),
+                 Settings::values.confine_mouse_to_the_touchscreen, false);
 
     qt_config->endGroup();
 }

@@ -110,8 +110,6 @@ __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 #endif
 
 constexpr int default_mouse_timeout = 2500;
-bool confined = false;
-
 /**
  * "Callouts" are one-time instructional messages shown to the user. In the config settings, there
  * is a bitfield "callout_flags" options, used to track if a message has already been shown to the
@@ -2124,32 +2122,6 @@ void GMainWindow::mousePressEvent([[maybe_unused]] QMouseEvent* event) {
 
 void GMainWindow::mouseReleaseEvent([[maybe_unused]] QMouseEvent* event) {
     OnMouseActivity();
-}
-
-void GRenderWindow::ConfineMouse() {
-    if (!UISettings::values.confine_mouse_to_the_touchscreen)
-        return;
-
-#ifdef _WIN32
-    RECT rectangle;
-    const Layout::FramebufferLayout var = GetFramebufferLayout();
-    rectangle.left = var.bottom_screen.left;
-    rectangle.right = var.bottom_screen.right;
-    rectangle.bottom = var.bottom_screen.bottom;
-    rectangle.top = var.bottom_screen.top;
-    ClipCursor(&rectangle);
-    confined = true;
-#endif // _WIN32
-}
-
-void GRenderWindow::UnconfineMouse() {
-#ifdef _WIN32
-    if (confined) {
-        ClipCursor(NULL);
-        confined = false;
-    }
-
-#endif // _WIN32
 }
 
 void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string details) {

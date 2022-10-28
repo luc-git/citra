@@ -235,6 +235,8 @@ private:
     /// Temporary storage of the screenshot taken
     QImage screenshot_image;
     bool first_frame = false;
+    bool confined = false;
+    bool fullscreen = false;
 
 protected:
     void showEvent(QShowEvent* event) override;

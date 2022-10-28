@@ -81,7 +81,6 @@ struct Values {
     bool updater_found;
     bool update_on_close;
     bool check_for_update_on_start;
-    bool confine_mouse_to_the_touchscreen;
 
     // Discord RPC
     bool enable_discord_presence;

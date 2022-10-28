@@ -452,6 +452,43 @@ void GRenderWindow::showEvent(QShowEvent* event) {
     QWidget::showEvent(event);
 }
 
+
+void GRenderWindow::ConfineMouse() {
+    if (!Settings::values.confine_mouse_to_the_touchscreen)
+        return;
+
+#ifdef _WIN32
+    QPoint point;
+    point.setX(0);
+    point.setY(21);
+    mapFromParent(point);
+    HWND hwnd = GetActiveWindow();
+    RECT rectangle;
+    const Layout::FramebufferLayout var = GetFramebufferLayout();
+    rectangle.left = var.bottom_screen.left;
+    rectangle.right = var.bottom_screen.right;
+    rectangle.bottom = var.bottom_screen.bottom;
+    rectangle.top = var.bottom_screen.top;
+    if (!fullscreen) {
+        rectangle.bottom += point.y();
+        rectangle.top += point.y();
+    }
+    ClientToScreen(hwnd, (LPPOINT)&rectangle);
+    ClientToScreen(hwnd, (LPPOINT)&rectangle + 1);
+    ClipCursor(&rectangle);
+    confined = true;
+#endif // _WIN32
+}
+
+void GRenderWindow::UnconfineMouse() {
+#ifdef _WIN32
+    if (confined) {
+        ClipCursor(NULL);
+        confined = false;
+    }
+#endif // _WIN32
+}
+
 std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() const {
     return std::make_unique<GLContext>(QOpenGLContext::globalShareContext());
 }
