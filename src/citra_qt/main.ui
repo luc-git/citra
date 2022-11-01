@@ -45,7 +45,7 @@
      <x>0</x>
      <y>0</y>
      <width>1081</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -238,20 +238,20 @@
    </property>
   </action>
   <action name="action_Save">
-    <property name="enabled">
-      <bool>false</bool>
-    </property>
-    <property name="text">
-      <string>Save</string>
-    </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
   </action>
   <action name="action_Load">
-    <property name="enabled">
-      <bool>false</bool>
-    </property>
-    <property name="text">
-      <string>Load</string>
-    </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Load</string>
+   </property>
   </action>
   <action name="action_FAQ">
    <property name="text">
@@ -530,6 +530,14 @@
   <action name="action_Open_Citra_Folder">
    <property name="text">
     <string>Open Citra Folder</string>
+   </property>
+  </action>
+  <action name="action_Unconfine_Mouse">
+   <property name="text">
+    <string>Unconfine Mouse</string>
+   </property>
+   <property name="toolTip">
+    <string>Unconfine the mouse cursor</string>
    </property>
   </action>
  </widget>

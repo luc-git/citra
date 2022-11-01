@@ -191,7 +191,6 @@ public slots:
     void OnEmulationStarting(EmuThread* emu_thread);
     void OnEmulationStopping();
     void OnFramebufferSizeChanged();
-    void ConfineMouse();
     void UnconfineMouse();
 
 signals:
@@ -206,15 +205,12 @@ signals:
     /// Emitted on mouse activity. Used to signal that the mouse should be shown if it's hidden
     void MouseActivity();
 
-    void MousePress();
-
-    void KeyPress();
-
 private:
     std::pair<u32, u32> ScaleTouch(QPointF pos) const;
     void TouchBeginEvent(const QTouchEvent* event);
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
+    void ConfineMouse();
 
     void OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) override;
 
@@ -236,7 +232,7 @@ private:
     QImage screenshot_image;
     bool first_frame = false;
     bool confined = false;
-    bool fullscreen = false;
+    Settings::LayoutOption layoutoption;
 
 protected:
     void showEvent(QShowEvent* event) override;

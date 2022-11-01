@@ -140,6 +140,9 @@ struct TouchFromButtonMap {
 };
 
 struct Values {
+    // ConfineMouse
+    bool confine_mouse_to_the_touchscreen;
+
     // CheckNew3DS
     bool is_new_3ds;
 

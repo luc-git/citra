@@ -588,13 +588,16 @@ void GMainWindow::InitializeHotkeys() {
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Capture Screenshot"), this),
             &QShortcut::activated, this, [&] {
                 if (ui->action_Capture_Screenshot->isEnabled()) {
-                    OnCaptureScreenshot();
+OnCaptureScreenshot();
                 }
             });
-    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Load from Newest Slot"), this),
-            &QShortcut::activated, ui->action_Load_from_Newest_Slot, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Save to Oldest Slot"), this),
-            &QShortcut::activated, ui->action_Save_to_Oldest_Slot, &QAction::trigger);
+            connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Load from Newest Slot"), this),
+                &QShortcut::activated, ui->action_Load_from_Newest_Slot, &QAction::trigger);
+            connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Save to Oldest Slot"), this),
+                &QShortcut::activated, ui->action_Save_to_Oldest_Slot, &QAction::trigger);
+            connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Unconfine Mouse Cursor"),
+                                              this),
+                    &QShortcut::activated, ui->action_Unconfine_Mouse, &QAction::trigger);
 }
 
 void GMainWindow::ShowUpdaterWidgets() {
@@ -656,7 +659,8 @@ void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
         (state & (Qt::ApplicationHidden | Qt::ApplicationInactive))) {
         auto_paused = true;
         OnPauseGame();
-    } else if (ui->action_Start->isEnabled() && auto_paused && state == Qt::ApplicationActive) {
+    }
+    else if (ui->action_Start->isEnabled() && auto_paused && state == Qt::ApplicationActive) {
         auto_paused = false;
         OnStartGame();
     }
@@ -667,19 +671,19 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::OpenDirectory, this, &GMainWindow::OnGameListOpenDirectory);
     connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
     connect(game_list, &GameList::NavigateToGamedbEntryRequested, this,
-            &GMainWindow::OnGameListNavigateToGamedbEntry);
+        &GMainWindow::OnGameListNavigateToGamedbEntry);
     connect(game_list, &GameList::DumpRomFSRequested, this, &GMainWindow::OnGameListDumpRomFS);
     connect(game_list, &GameList::AddDirectory, this, &GMainWindow::OnGameListAddDirectory);
     connect(game_list_placeholder, &GameListPlaceholder::AddDirectory, this,
-            &GMainWindow::OnGameListAddDirectory);
+        &GMainWindow::OnGameListAddDirectory);
     connect(game_list, &GameList::ShowList, this, &GMainWindow::OnGameListShowList);
     connect(game_list, &GameList::PopulatingCompleted,
-            [this] { multiplayer_state->UpdateGameList(game_list->GetModel()); });
+        [this] { multiplayer_state->UpdateGameList(game_list->GetModel()); });
 
     connect(this, &GMainWindow::EmulationStarting, render_window,
-            &GRenderWindow::OnEmulationStarting);
+        &GRenderWindow::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, render_window,
-            &GRenderWindow::OnEmulationStopping);
+        &GRenderWindow::OnEmulationStopping);
 
     connect(&status_bar_update_timer, &QTimer::timeout, this, &GMainWindow::UpdateStatusBar);
 
@@ -687,9 +691,8 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(this, &GMainWindow::CIAInstallReport, this, &GMainWindow::OnCIAInstallReport);
     connect(this, &GMainWindow::CIAInstallFinished, this, &GMainWindow::OnCIAInstallFinished);
     connect(this, &GMainWindow::UpdateThemedIcons, multiplayer_state,
-            &MultiplayerState::UpdateThemedIcons);
-    connect(render_window, &GRenderWindow::MousePress, render_window, &GRenderWindow::ConfineMouse);
-    connect(render_window, &GRenderWindow::KeyPress, render_window, &GRenderWindow::UnconfineMouse);
+        &MultiplayerState::UpdateThemedIcons);
+    connect(ui->action_Unconfine_Mouse, &QAction::triggered, render_window, &GRenderWindow::UnconfineMouse);
 }
 
 void GMainWindow::ConnectMenuEvents() {

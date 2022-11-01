@@ -244,6 +244,8 @@ void GRenderWindow::OnFramebufferSizeChanged() {
     const u32 width = static_cast<u32>(this->width() * pixel_ratio);
     const u32 height = static_cast<u32>(this->height() * pixel_ratio);
     UpdateCurrentFramebufferLayout(width, height);
+    if (confined)
+        ConfineMouse();
 }
 
 void GRenderWindow::BackupGeometry() {
@@ -288,7 +290,6 @@ void GRenderWindow::closeEvent(QCloseEvent* event) {
 
 void GRenderWindow::keyPressEvent(QKeyEvent* event) {
     InputCommon::GetKeyboard()->PressKey(event->key());
-    emit KeyPress();
 }
 
 void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
@@ -307,7 +308,8 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
         InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
     }
     emit MouseActivity();
-    emit MousePress();
+    if (!confined && Settings::values.confine_mouse_to_the_touchscreen)
+        ConfineMouse();
 }
 
 void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
@@ -318,6 +320,8 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     const auto [x, y] = ScaleTouch(pos);
     this->TouchMoved(x, y);
     InputCommon::GetMotionEmu()->Tilt(pos.x(), pos.y());
+    if (layoutoption != Settings::values.layout_option && confined)
+        ConfineMouse();
     emit MouseActivity();
 }
 
@@ -382,6 +386,7 @@ bool GRenderWindow::event(QEvent* event) {
 void GRenderWindow::focusOutEvent(QFocusEvent* event) {
     QWidget::focusOutEvent(event);
     InputCommon::GetKeyboard()->ReleaseAllKeys();
+    confined = false;
 }
 
 void GRenderWindow::resizeEvent(QResizeEvent* event) {
@@ -452,44 +457,6 @@ void GRenderWindow::showEvent(QShowEvent* event) {
     QWidget::showEvent(event);
 }
 
-
-void GRenderWindow::ConfineMouse() {
-    if (!Settings::values.confine_mouse_to_the_touchscreen)
-        return;
-
-#ifdef _WIN32
-    QPoint point;
-    point.setX(0);
-    point.setY(21);
-    mapFromParent(point);
-    HWND hwnd = GetActiveWindow();
-    RECT rectangle;
-    const Layout::FramebufferLayout var = GetFramebufferLayout();
-    rectangle.left = var.bottom_screen.left;
-    rectangle.right = var.bottom_screen.right;
-    rectangle.bottom = var.bottom_screen.bottom;
-    rectangle.top = var.bottom_screen.top;
-    QWidget *widget = GRenderWindow::parentWidget();
-    if (!GetMainWindow()->isFullScreen()) {
-        rectangle.bottom += point.y();
-        rectangle.top += point.y();
-    }
-    ClientToScreen(hwnd, (LPPOINT)&rectangle);
-    ClientToScreen(hwnd, (LPPOINT)&rectangle + 1);
-    ClipCursor(&rectangle);
-    confined = true;
-#endif // _WIN32
-}
-
-void GRenderWindow::UnconfineMouse() {
-#ifdef _WIN32
-    if (confined) {
-        ClipCursor(NULL);
-        confined = false;
-    }
-#endif // _WIN32
-}
-
 std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() const {
     return std::make_unique<GLContext>(QOpenGLContext::globalShareContext());
 }
@@ -516,4 +483,43 @@ void GLContext::MakeCurrent() {
 
 void GLContext::DoneCurrent() {
     context->doneCurrent();
+}
+
+void GRenderWindow::ConfineMouse() {
+#ifdef _WIN32
+    QPoint point;
+    point.setX(0);
+    point.setY(21);
+    mapFromParent(point);
+    HWND hwnd = GetActiveWindow();
+    RECT rectangle;
+    const Layout::FramebufferLayout var = GetFramebufferLayout();
+    rectangle.left = var.bottom_screen.left;
+    rectangle.right = var.bottom_screen.right;
+    rectangle.bottom = var.bottom_screen.bottom;
+    rectangle.top = var.bottom_screen.top;
+    POINT ulpoint, brpoint;
+    ulpoint.x = rectangle.left;
+    ulpoint.y = rectangle.top;
+    ClientToScreen(hwnd, &ulpoint);
+    brpoint.x = rectangle.right + 1;
+    brpoint.y = rectangle.bottom;
+    ClientToScreen(hwnd, &brpoint);
+    SetRect(&rectangle, ulpoint.x, ulpoint.y, brpoint.x, brpoint.y);
+    if (!GetMainWindow()->isFullScreen()) {
+        rectangle.bottom += point.y();
+        rectangle.top += point.y();
+    }
+    layoutoption = Settings::values.layout_option;
+    if (ClipCursor(&rectangle))
+        confined = true;
+#endif // _WIN32
+}
+
+void GRenderWindow::UnconfineMouse() {
+#ifdef _WIN32
+    if (confined)
+        if (ClipCursor(NULL))
+            confined = false;
+#endif // _WIN32
 }
