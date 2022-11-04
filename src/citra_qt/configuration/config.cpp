@@ -70,6 +70,7 @@ const std::array<UISettings::Shortcut, 24> default_hotkeys{
      {QStringLiteral("Load Amiibo"),              QStringLiteral("Main Window"), {QStringLiteral("F2"), Qt::ApplicationShortcut}},
      {QStringLiteral("Load File"),                QStringLiteral("Main Window"), {QStringLiteral("Ctrl+O"), Qt::WindowShortcut}},
      {QStringLiteral("Load from Newest Slot"),    QStringLiteral("Main Window"), {QStringLiteral("Ctrl+V"), Qt::WindowShortcut}},
+     {QStringLiteral("Mute Audio"),               QStringLiteral("Main Window"), {QStringLiteral("Ctrl+M"), Qt::WindowShortcut}},
      {QStringLiteral("Remove Amiibo"),            QStringLiteral("Main Window"), {QStringLiteral("F3"), Qt::ApplicationShortcut}},
      {QStringLiteral("Restart Emulation"),        QStringLiteral("Main Window"), {QStringLiteral("F6"), Qt::WindowShortcut}},
      {QStringLiteral("Rotate Screens Upright"),   QStringLiteral("Main Window"), {QStringLiteral("F8"), Qt::WindowShortcut}},
@@ -305,21 +306,17 @@ void Config::ReadDataStorageValues() {
 
     Settings::values.use_virtual_sd = ReadSetting(QStringLiteral("use_virtual_sd"), true).toBool();
 
+    Settings::values.use_custom_storage =
+        ReadSetting(QStringLiteral("use_custom_storage"), false).toBool();
     const std::string nand_dir =
-        ReadSetting(
-            QStringLiteral("nand_directory"),
-            QString::fromStdString(FileUtil::GetDefaultUserPath(FileUtil::UserPath::NANDDir)))
-            .toString()
-            .toStdString();
+        ReadSetting(QStringLiteral("nand_directory"), QStringLiteral("")).toString().toStdString();
     const std::string sdmc_dir =
-        ReadSetting(
-            QStringLiteral("sdmc_directory"),
-            QString::fromStdString(FileUtil::GetDefaultUserPath(FileUtil::UserPath::SDMCDir)))
-            .toString()
-            .toStdString();
+        ReadSetting(QStringLiteral("sdmc_directory"), QStringLiteral("")).toString().toStdString();
 
-    FileUtil::UpdateUserPath(FileUtil::UserPath::NANDDir, nand_dir);
-    FileUtil::UpdateUserPath(FileUtil::UserPath::SDMCDir, sdmc_dir);
+    if (Settings::values.use_custom_storage) {
+        FileUtil::UpdateUserPath(FileUtil::UserPath::NANDDir, nand_dir);
+        FileUtil::UpdateUserPath(FileUtil::UserPath::SDMCDir, sdmc_dir);
+    }
 
     qt_config->endGroup();
 }
@@ -871,12 +868,13 @@ void Config::SaveDataStorageValues() {
     qt_config->beginGroup(QStringLiteral("Data Storage"));
 
     WriteSetting(QStringLiteral("use_virtual_sd"), Settings::values.use_virtual_sd, true);
+    WriteSetting(QStringLiteral("use_custom_storage"), Settings::values.use_custom_storage, false);
     WriteSetting(QStringLiteral("nand_directory"),
                  QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)),
-                 QString::fromStdString(FileUtil::GetDefaultUserPath(FileUtil::UserPath::NANDDir)));
+                 QStringLiteral(""));
     WriteSetting(QStringLiteral("sdmc_directory"),
                  QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)),
-                 QString::fromStdString(FileUtil::GetDefaultUserPath(FileUtil::UserPath::SDMCDir)));
+                 QStringLiteral(""));
 
     qt_config->endGroup();
 }
