@@ -151,8 +151,8 @@ static void InitializeLogging() {
 }
 
 GMainWindow::GMainWindow()
-    : config(std::make_unique<Config>()), emu_thread(nullptr),
-      ui(std::make_unique<Ui::MainWindow>()) {
+    : ui{std::make_unique<Ui::MainWindow>()}, config{std::make_unique<Config>()}, emu_thread{
+                                                                                      nullptr} {
     InitializeLogging();
     Debugger::ToggleConsole();
     Settings::LogSettings();
@@ -262,7 +262,7 @@ void GMainWindow::InitializeWidgets() {
     loading_screen = new LoadingScreen(this);
     loading_screen->hide();
     ui->horizontalLayout->addWidget(loading_screen);
-    connect(loading_screen, &LoadingScreen::Hidden, [&] {
+    connect(loading_screen, &LoadingScreen::Hidden, this, [&] {
         loading_screen->Clear();
         if (emulation_running) {
             render_window->show();
@@ -431,13 +431,13 @@ void GMainWindow::InitializeSaveStateMenuActions() {
         ui->menu_Save_State->addAction(actions_save_state[i]);
     }
 
-    connect(ui->action_Load_from_Newest_Slot, &QAction::triggered, [this] {
+    connect(ui->action_Load_from_Newest_Slot, &QAction::triggered, this, [this] {
         UpdateSaveStates();
         if (newest_slot != 0) {
             actions_load_state[newest_slot - 1]->trigger();
         }
     });
-    connect(ui->action_Save_to_Oldest_Slot, &QAction::triggered, [this] {
+    connect(ui->action_Save_to_Oldest_Slot, &QAction::triggered, this, [this] {
         UpdateSaveStates();
         actions_save_state[oldest_slot - 1]->trigger();
     });
@@ -686,6 +686,8 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::ShowList, this, &GMainWindow::OnGameListShowList);
     connect(game_list, &GameList::PopulatingCompleted,
         [this] { multiplayer_state->UpdateGameList(game_list->GetModel()); });
+    connect(game_list, &GameList::PopulatingCompleted, this,
+            [this] { multiplayer_state->UpdateGameList(game_list->GetModel()); });
 
     connect(this, &GMainWindow::EmulationStarting, render_window,
         &GRenderWindow::OnEmulationStarting);
@@ -776,7 +778,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui->action_Close_Movie, &QAction::triggered, this, &GMainWindow::OnCloseMovie);
     connect(ui->action_Save_Movie, &QAction::triggered, this, &GMainWindow::OnSaveMovie);
     connect(ui->action_Movie_Read_Only_Mode, &QAction::toggled, this,
-            [this](bool checked) { Core::Movie::GetInstance().SetReadOnly(checked); });
+            [](bool checked) { Core::Movie::GetInstance().SetReadOnly(checked); });
     connect(ui->action_Enable_Frame_Advancing, &QAction::triggered, this, [this] {
         if (emulation_running) {
             Core::System::GetInstance().frame_limiter.SetFrameAdvancing(
@@ -1421,7 +1423,7 @@ void GMainWindow::OnGameListDumpRomFS(QString game_path, u64 program_id) {
                     program_id | 0x0004000e00000000);
     using FutureWatcher = QFutureWatcher<std::pair<Loader::ResultStatus, Loader::ResultStatus>>;
     auto* future_watcher = new FutureWatcher(this);
-    connect(future_watcher, &FutureWatcher::finished,
+    connect(future_watcher, &FutureWatcher::finished, this,
             [this, dialog, base_path, update_path, future_watcher] {
                 dialog->hide();
                 const auto& [base, update] = future_watcher->result();
@@ -1523,7 +1525,7 @@ void GMainWindow::InstallCIA(QStringList filepaths) {
         const auto cia_progress = [&](std::size_t written, std::size_t total) {
             emit UpdateProgress(written, total);
         };
-        for (const auto current_path : filepaths) {
+        for (const auto& current_path : filepaths) {
             status = Service::AM::InstallCIA(current_path.toStdString(), cia_progress);
             emit CIAInstallReport(status, current_path);
         }
@@ -1560,6 +1562,10 @@ void GMainWindow::OnCIAInstallReport(Service::AM::InstallStatus status, QString 
                               tr("%1 must be decrypted "
                                  "before being used with Citra. A real 3DS is required.")
                                   .arg(filename));
+        break;
+    case Service::AM::InstallStatus::ErrorFileNotFound:
+        QMessageBox::critical(this, tr("Unable to find File"),
+                              tr("Could not find %1").arg(filename));
         break;
     }
 }
@@ -1738,6 +1744,8 @@ void GMainWindow::ToggleScreenLayout() {
     case Settings::LayoutOption::SideScreen:
         new_layout = Settings::LayoutOption::Default;
         break;
+    default:
+        LOG_ERROR(Frontend, "Unknown layout option {}", Settings::values.layout_option);
     }
 
     Settings::values.layout_option = new_layout;
@@ -1984,7 +1992,7 @@ void GMainWindow::OnCaptureScreenshot() {
     const QString filename = game_title.remove(QRegularExpression(QStringLiteral("[\\/:?\"<>|]")));
     const QString timestamp =
         QDateTime::currentDateTime().toString(QStringLiteral("dd.MM.yy_hh.mm.ss.z"));
-    path.append(QStringLiteral("/%1_%2.png").arg(filename).arg(timestamp));
+    path.append(QStringLiteral("/%1_%2.png").arg(filename, timestamp));
     render_window->CaptureScreenshot(UISettings::values.screenshot_resolution_factor, path);
     OnStartGame();
 }
@@ -2059,7 +2067,7 @@ void GMainWindow::UpdateStatusBar() {
         message_label_used_for_movie = true;
         ui->action_Save_Movie->setEnabled(true);
     } else if (play_mode == Core::Movie::PlayMode::Playing) {
-        message_label->setText(tr("Playing %1 / %2").arg(current).arg(total));
+        message_label->setText(tr("Playing %1 / %2").arg(current, total));
         message_label->setVisible(true);
         message_label_used_for_movie = true;
         ui->action_Save_Movie->setEnabled(false);
