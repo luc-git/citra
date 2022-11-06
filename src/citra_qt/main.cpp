@@ -701,7 +701,8 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(this, &GMainWindow::CIAInstallFinished, this, &GMainWindow::OnCIAInstallFinished);
     connect(this, &GMainWindow::UpdateThemedIcons, multiplayer_state,
         &MultiplayerState::UpdateThemedIcons);
-    connect(ui->action_Unconfine_Mouse, &QAction::triggered, render_window, &GRenderWindow::UnconfineMouse);
+    connect(ui->action_Unconfine_Mouse, &QAction::triggered, render_window,
+        &GRenderWindow::UnconfineMouse);
 }
 
 void GMainWindow::ConnectMenuEvents() {
