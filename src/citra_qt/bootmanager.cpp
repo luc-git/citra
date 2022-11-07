@@ -487,6 +487,13 @@ void GLContext::DoneCurrent() {
     context->doneCurrent();
 }
 
+#ifdef __linux__
+extern "C" {
+#include <X11/Xlib.h>
+#include <X11/extensions/Xfixes.h>
+}
+#endif
+
 void GRenderWindow::ConfineMouse() {
 #ifdef _WIN32
     QPoint point;
@@ -516,6 +523,9 @@ void GRenderWindow::ConfineMouse() {
     if (ClipCursor(&rectangle))
         confined = true;
 #endif // _WIN32
+#ifdef __linux__
+    XOpenDisplay(NULL);
+#endif
 }
 
 void GRenderWindow::UnconfineMouse() {

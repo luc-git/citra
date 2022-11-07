@@ -50,7 +50,14 @@ void EmuWindow_SDL2::OnMouseMotion(s32 x, s32 y) {
 void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
     if (button == SDL_BUTTON_LEFT) {
         if (state == SDL_PRESSED) {
+            SDL_Rect rect;
+            const Layout::FramebufferLayout var = GetFramebufferLayout();
+            rect.x = var.bottom_screen.left;
+            rect.y = var.bottom_screen.top;
+            rect.h = var.bottom_screen.GetHeight();
+            rect.w = var.bottom_screen.GetWidth();
             TouchPressed((unsigned)std::max(x, 0), (unsigned)std::max(y, 0));
+            SDL_SetWindowMouseRect(render_window, &rect);
         } else {
             TouchReleased();
         }

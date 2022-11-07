@@ -261,6 +261,13 @@ elseif (WIN32)
     endif()
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
+elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux)$")
+    find_package(X11 REQUIRED)
+    add_library(X11 INTERFACE)
+    target_link_libraries(X11 INTERFACE "${X11_LIBRARIES}")
+    target_include_directories(X11 INTERFACE "${X11_INCLUDE_DIR}")
+    add_library(X11::X11 ALIAS X11)
+    add_library(X11::Xfixes ALIAS X11)
 endif()
 
 # Setup a custom clang-format target (if clang-format can be found) that will run
