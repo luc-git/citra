@@ -19,6 +19,7 @@ class ConfigureEnhancements;
 class ConfigureGraphics;
 class ConfigureSystem;
 class ConfigureDebug;
+class CheatDialog;
 
 class QGraphicsScene;
 class QStandardItem;
@@ -47,6 +48,7 @@ public:
 
     /// Reset the settings for this game
     void ResetDefaults();
+    void SaveCheat();
 
 private:
     void changeEvent(QEvent* event) override;
@@ -70,4 +72,5 @@ private:
     std::unique_ptr<ConfigureGraphics> graphics_tab;
     std::unique_ptr<ConfigureSystem> system_tab;
     std::unique_ptr<ConfigureDebug> debug_tab;
+    std::unique_ptr<CheatDialog> cheat_tab;
 };

@@ -661,7 +661,6 @@ void GMainWindow::RestoreUIState() {
     microProfileDialog->restoreGeometry(UISettings::values.microprofile_geometry);
     microProfileDialog->setVisible(UISettings::values.microprofile_visible.GetValue());
 #endif
-    ui->action_Cheats->setEnabled(false);
 
     game_list->LoadInterfaceLayout();
 
@@ -763,7 +762,6 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Report_Compatibility, &GMainWindow::OnMenuReportCompatibility);
     connect_menu(ui->action_Configure, &GMainWindow::OnConfigure);
     connect_menu(ui->action_Configure_Current_Game, &GMainWindow::OnConfigurePerGame);
-    connect_menu(ui->action_Cheats, &GMainWindow::OnCheats);
 
     // View
     connect_menu(ui->action_Single_Window_Mode, &GMainWindow::ToggleWindowMode);
@@ -849,7 +847,6 @@ void GMainWindow::UpdateMenuState() {
         ui->action_Load_Amiibo,
         ui->action_Remove_Amiibo,
         ui->action_Pause,
-        ui->action_Cheats,
         ui->action_Advance_Frame,
     };
 
@@ -1933,11 +1930,6 @@ void GMainWindow::TriggerSwapScreens() {
 
 void GMainWindow::TriggerRotateScreens() {
     ui->action_Screen_Layout_Upright_Screens->trigger();
-}
-
-void GMainWindow::OnCheats() {
-    CheatDialog cheat_dialog(this);
-    cheat_dialog.exec();
 }
 
 void GMainWindow::OnSaveState() {

@@ -311,7 +311,8 @@ System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::st
         }
     }
     kernel->SetCurrentProcess(process);
-    cheat_engine = std::make_unique<Cheats::CheatEngine>(*this);
+    cheat_engine = std::make_unique<Cheats::CheatEngine>(
+        Kernel().GetCurrentProcess()->codeset->program_id, *this);
     title_id = 0;
     if (app_loader->ReadProgramId(title_id) != Loader::ResultStatus::Success) {
         LOG_ERROR(Core, "Failed to find title id for ROM (Error {})",
