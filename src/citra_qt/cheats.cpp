@@ -123,14 +123,6 @@ bool CheatDialog::SaveCheat(int row) {
     return true;
 }
 
-void CheatDialog::closeEvent(QCloseEvent* event) {
-    if (edited && !CheckSaveCheat()) {
-        event->ignore();
-        return;
-    }
-    event->accept();
-}
-
 void CheatDialog::OnRowSelected(int row, int column) {
     if (row == last_row) {
         return;
@@ -178,7 +170,6 @@ void CheatDialog::OnDeleteCheat() {
     if (newly_created) {
         newly_created = false;
     } else {
-        auto& cheat = cheat_engine;
         cheat_engine->RemoveCheat(ui->tableCheats->currentRow());
         cheat_engine->SaveCheatFile();
     }

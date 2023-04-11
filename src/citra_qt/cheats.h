@@ -43,8 +43,6 @@ private:
      */
     bool SaveCheat(int row);
 
-    void closeEvent(QCloseEvent* event) override;
-
 private slots:
     void OnRowSelected(int row, int column);
     void OnCheckChanged(int state);
