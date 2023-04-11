@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CheatDialog</class>
- <widget class="QWidget" name="CheatDialog">
+ <class>ConfigureCheats</class>
+ <widget class="QWidget" name="ConfigureCheats">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>

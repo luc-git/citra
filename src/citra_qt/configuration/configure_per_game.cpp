@@ -7,7 +7,7 @@
 #include <QPushButton>
 #include <QString>
 #include <fmt/format.h>
-#include "citra_qt/cheats.h"
+#include "citra_qt/configuration/configure_cheats.h"
 #include "citra_qt/configuration/config.h"
 #include "citra_qt/configuration/configure_audio.h"
 #include "citra_qt/configuration/configure_debug.h"
@@ -36,7 +36,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const QString
     graphics_tab = std::make_unique<ConfigureGraphics>(this);
     system_tab = std::make_unique<ConfigureSystem>(this);
     debug_tab = std::make_unique<ConfigureDebug>(this);
-    cheat_tab = std::make_unique<CheatDialog>(title_id, this);
+    cheat_tab = std::make_unique<ConfigureCheats>(title_id, this);
 
     ui->setupUi(this);
 

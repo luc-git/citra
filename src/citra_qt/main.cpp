@@ -34,7 +34,6 @@
 #include "citra_qt/bootmanager.h"
 #include "citra_qt/camera/qt_multimedia_camera.h"
 #include "citra_qt/camera/still_image_camera.h"
-#include "citra_qt/cheats.h"
 #include "citra_qt/compatdb.h"
 #include "citra_qt/compatibility_list.h"
 #include "citra_qt/configuration/config.h"

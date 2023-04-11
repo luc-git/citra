@@ -19,7 +19,7 @@ class ConfigureEnhancements;
 class ConfigureGraphics;
 class ConfigureSystem;
 class ConfigureDebug;
-class CheatDialog;
+class ConfigureCheats;
 
 class QGraphicsScene;
 class QStandardItem;
@@ -72,5 +72,5 @@ private:
     std::unique_ptr<ConfigureGraphics> graphics_tab;
     std::unique_ptr<ConfigureSystem> system_tab;
     std::unique_ptr<ConfigureDebug> debug_tab;
-    std::unique_ptr<CheatDialog> cheat_tab;
+    std::unique_ptr<ConfigureCheats> cheat_tab;
 };

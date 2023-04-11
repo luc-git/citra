@@ -12,15 +12,15 @@ class CheatBase;
 }
 
 namespace Ui {
-class CheatDialog;
+class ConfigureCheats;
 } // namespace Ui
 
-class CheatDialog : public QWidget {
+class ConfigureCheats : public QWidget {
     Q_OBJECT
 
 public:
-    explicit CheatDialog(u64 title_id_, QWidget* parent = nullptr);
-    ~CheatDialog();
+    explicit ConfigureCheats(u64 title_id_, QWidget* parent = nullptr);
+    ~ConfigureCheats();
     bool ApplyConfiguration();
 
 private:
@@ -51,7 +51,7 @@ private slots:
     void OnAddCheat();
 
 private:
-    std::unique_ptr<Ui::CheatDialog> ui;
+    std::unique_ptr<Ui::ConfigureCheats> ui;
     std::vector<std::shared_ptr<Cheats::CheatBase>> cheats;
     bool edited = false, newly_created = false;
     int last_row = -1, last_col = -1;
