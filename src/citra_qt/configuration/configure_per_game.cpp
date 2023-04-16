@@ -7,9 +7,9 @@
 #include <QPushButton>
 #include <QString>
 #include <fmt/format.h>
-#include "citra_qt/configuration/configure_cheats.h"
 #include "citra_qt/configuration/config.h"
 #include "citra_qt/configuration/configure_audio.h"
+#include "citra_qt/configuration/configure_cheats.h"
 #include "citra_qt/configuration/configure_debug.h"
 #include "citra_qt/configuration/configure_enhancements.h"
 #include "citra_qt/configuration/configure_general.h"
@@ -46,7 +46,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const QString
     ui->tabWidget->addTab(graphics_tab.get(), tr("Graphics"));
     ui->tabWidget->addTab(audio_tab.get(), tr("Audio"));
     ui->tabWidget->addTab(debug_tab.get(), tr("Debug"));
-    ui->tabWidget->addTab(cheat_tab.get(), tr("Cheat"));
+    ui->tabWidget->addTab(cheat_tab.get(), tr("Cheats"));
 
     setFocusPolicy(Qt::ClickFocus);
     setWindowTitle(tr("Properties"));
@@ -54,11 +54,14 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const QString
     scene = new QGraphicsScene;
     ui->icon_view->setScene(scene);
 
-    if (system.IsPoweredOn()) {
-        QPushButton* apply_button = ui->buttonBox->addButton(QDialogButtonBox::Apply);
-        connect(apply_button, &QAbstractButton::clicked, this,
-                &ConfigurePerGame::HandleApplyButtonClicked);
+    apply_button = ui->buttonBox->addButton(QDialogButtonBox::Apply);
+    connect(apply_button, &QAbstractButton::clicked, this,
+            &ConfigurePerGame::HandleApplyButtonClicked);
+    if (!system.IsPoweredOn()) {
+        apply_button->hide();
     }
+
+    connect(ui->tabWidget, &QTabWidget::currentChanged, this, &ConfigurePerGame::TabChanged);
 
     connect(ui->button_reset_per_game, &QPushButton::clicked, this,
             &ConfigurePerGame::ResetDefaults);
@@ -89,9 +92,9 @@ void ConfigurePerGame::ResetDefaults() {
 
 void ConfigurePerGame::SaveCheat() {
     if (cheat_tab->ApplyConfiguration()) {
-            accept();
-        }
+        accept();
     }
+}
 
 void ConfigurePerGame::ApplyConfiguration() {
     QPushButton* buttonSender = qobject_cast<QPushButton*>(sender());
@@ -122,6 +125,17 @@ void ConfigurePerGame::changeEvent(QEvent* event) {
 
 void ConfigurePerGame::RetranslateUI() {
     ui->retranslateUi(this);
+}
+
+void ConfigurePerGame::TabChanged(int index) {
+    if (index == ui->tabWidget->indexOf(cheat_tab.get())) {
+        apply_button->setText(tr("Save"));
+        apply_button->show();
+    } else if (system.IsPoweredOn()) {
+        apply_button->setText(tr("Apply"));
+    } else {
+        apply_button->hide();
+    }
 }
 
 void ConfigurePerGame::HandleApplyButtonClicked() {
