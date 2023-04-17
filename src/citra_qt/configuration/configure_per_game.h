@@ -53,11 +53,9 @@ public:
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
-    void TabChanged(int index);
 
     void HandleApplyButtonClicked();
 
-    QPushButton* apply_button;
     std::unique_ptr<Ui::ConfigurePerGame> ui;
     std::string filename;
     u64 title_id;

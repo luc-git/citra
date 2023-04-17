@@ -54,14 +54,11 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const QString
     scene = new QGraphicsScene;
     ui->icon_view->setScene(scene);
 
-    apply_button = ui->buttonBox->addButton(QDialogButtonBox::Apply);
-    connect(apply_button, &QAbstractButton::clicked, this,
-            &ConfigurePerGame::HandleApplyButtonClicked);
-    if (!system.IsPoweredOn()) {
-        apply_button->hide();
+    if (system.IsPoweredOn()) {
+        QPushButton* apply_button = ui->buttonBox->addButton(QDialogButtonBox::Apply);
+        connect(apply_button, &QAbstractButton::clicked, this,
+                &ConfigurePerGame::HandleApplyButtonClicked);
     }
-
-    connect(ui->tabWidget, &QTabWidget::currentChanged, this, &ConfigurePerGame::TabChanged);
 
     connect(ui->button_reset_per_game, &QPushButton::clicked, this,
             &ConfigurePerGame::ResetDefaults);
@@ -125,17 +122,6 @@ void ConfigurePerGame::changeEvent(QEvent* event) {
 
 void ConfigurePerGame::RetranslateUI() {
     ui->retranslateUi(this);
-}
-
-void ConfigurePerGame::TabChanged(int index) {
-    if (index == ui->tabWidget->indexOf(cheat_tab.get())) {
-        apply_button->setText(tr("Save"));
-        apply_button->show();
-    } else if (system.IsPoweredOn()) {
-        apply_button->setText(tr("Apply"));
-    } else {
-        apply_button->hide();
-    }
 }
 
 void ConfigurePerGame::HandleApplyButtonClicked() {
