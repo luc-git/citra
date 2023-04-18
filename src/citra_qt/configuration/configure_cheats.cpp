@@ -32,6 +32,8 @@ ConfigureCheats::ConfigureCheats(u64 title_id_, QWidget* parent)
     connect(ui->textNotes, &QPlainTextEdit::textChanged, this, &ConfigureCheats::OnTextEdited);
     connect(ui->textCode, &QPlainTextEdit::textChanged, this, &ConfigureCheats::OnTextEdited);
 
+    connect(ui->buttonSave, &QPushButton::clicked, this,
+            [this] { SaveCheat(ui->tableCheats->currentRow()); });
     connect(ui->buttonDelete, &QPushButton::clicked, this, &ConfigureCheats::OnDeleteCheat);
 
     cheat_engine = std::make_unique<Cheats::CheatEngine>(title_id, Core::System::GetInstance());
@@ -119,6 +121,7 @@ bool ConfigureCheats::SaveCheat(int row) {
     ui->tableCheats->setCurrentCell(previous_row, previous_col);
 
     edited = false;
+    ui->buttonSave->setEnabled(false);
     ui->buttonAddCheat->setEnabled(true);
     return true;
 }
@@ -145,6 +148,7 @@ void ConfigureCheats::OnRowSelected(int row, int column) {
     }
 
     edited = false;
+    ui->buttonSave->setEnabled(false);
     ui->buttonDelete->setEnabled(true);
     ui->buttonAddCheat->setEnabled(true);
     ui->lineName->setEnabled(true);
@@ -164,6 +168,7 @@ void ConfigureCheats::OnCheckChanged(int state) {
 
 void ConfigureCheats::OnTextEdited() {
     edited = true;
+    ui->buttonSave->setEnabled(true);
 }
 
 void ConfigureCheats::OnDeleteCheat() {
@@ -197,6 +202,7 @@ void ConfigureCheats::OnDeleteCheat() {
     }
 
     edited = false;
+    ui->buttonSave->setEnabled(false);
     ui->buttonAddCheat->setEnabled(true);
 }
 
@@ -226,6 +232,7 @@ void ConfigureCheats::OnAddCheat() {
     ui->lineName->setEnabled(true);
     ui->textCode->setEnabled(true);
     ui->textNotes->setEnabled(true);
+    ui->buttonSave->setEnabled(true);
     ui->buttonDelete->setEnabled(true);
     ui->buttonAddCheat->setEnabled(false);
 
