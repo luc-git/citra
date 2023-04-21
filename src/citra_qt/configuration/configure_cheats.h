@@ -5,11 +5,12 @@
 #pragma once
 
 #include <memory>
-#include "core/cheats/cheats.h"
+#include "common/common_types.h"
 
 namespace Cheats {
 class CheatBase;
-}
+class CheatEngine;
+} // namespace Cheats
 
 namespace Ui {
 class ConfigureCheats;
