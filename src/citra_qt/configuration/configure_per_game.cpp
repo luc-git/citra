@@ -64,7 +64,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const QString
             &ConfigurePerGame::ResetDefaults);
 
     connect(ui->buttonBox->button(QDialogButtonBox::Ok), &QPushButton::pressed, this,
-            &ConfigurePerGame::SaveCheat);
+            &ConfigurePerGame::SaveCheats);
 
     LoadConfiguration();
 }
@@ -87,24 +87,19 @@ void ConfigurePerGame::ResetDefaults() {
     close();
 }
 
-void ConfigurePerGame::SaveCheat() {
-    if (cheat_tab->ApplyConfiguration()) {
+void ConfigurePerGame::SaveCheats() {
+    if (ui->tabWidget->currentWidget() == cheat_tab.get() && cheat_tab->ApplyConfiguration()) {
         accept();
     }
 }
 
 void ConfigurePerGame::ApplyConfiguration() {
-    QPushButton* buttonSender = qobject_cast<QPushButton*>(sender());
     general_tab->ApplyConfiguration();
     system_tab->ApplyConfiguration();
     enhancements_tab->ApplyConfiguration();
     graphics_tab->ApplyConfiguration();
     audio_tab->ApplyConfiguration();
     debug_tab->ApplyConfiguration();
-    if (ui->tabWidget->currentIndex() == ui->tabWidget->indexOf(cheat_tab.get()) &&
-        buttonSender == ui->buttonBox->button(QDialogButtonBox::Apply)) {
-        cheat_tab->ApplyConfiguration();
-    };
 
     Settings::Apply();
     Settings::LogSettings();
@@ -126,6 +121,9 @@ void ConfigurePerGame::RetranslateUI() {
 
 void ConfigurePerGame::HandleApplyButtonClicked() {
     ApplyConfiguration();
+    if (ui->tabWidget->currentWidget() == cheat_tab.get()) {
+        cheat_tab->ApplyConfiguration();
+    }
 }
 
 static QPixmap GetQPixmapFromSMDH(std::vector<u8>& smdh_data) {

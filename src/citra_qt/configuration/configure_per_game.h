@@ -48,11 +48,11 @@ public:
 
     /// Reset the settings for this game
     void ResetDefaults();
-    void SaveCheat();
 
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
+    void SaveCheats();
 
     void HandleApplyButtonClicked();
 
