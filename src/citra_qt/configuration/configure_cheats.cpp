@@ -210,7 +210,7 @@ bool ConfigureCheats::ApplyConfiguration() {
     if (edited) {
         return SaveCheat(ui->tableCheats->currentRow());
     }
-    return false;
+    return true;
 }
 
 void ConfigureCheats::OnAddCheat() {

@@ -63,8 +63,8 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const QString
     connect(ui->button_reset_per_game, &QPushButton::clicked, this,
             &ConfigurePerGame::ResetDefaults);
 
-    connect(ui->buttonBox->button(QDialogButtonBox::Ok), &QPushButton::pressed, this,
-            &ConfigurePerGame::SaveCheats);
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
+            &ConfigurePerGame::HandleAcceptedEvent);
 
     LoadConfiguration();
 }
@@ -87,10 +87,11 @@ void ConfigurePerGame::ResetDefaults() {
     close();
 }
 
-void ConfigurePerGame::SaveCheats() {
-    if (ui->tabWidget->currentWidget() == cheat_tab.get() && cheat_tab->ApplyConfiguration()) {
-        accept();
+void ConfigurePerGame::HandleAcceptedEvent() {
+    if (ui->tabWidget->currentWidget() == cheat_tab.get()) {
+        cheat_tab->ApplyConfiguration();
     }
+    accept();
 }
 
 void ConfigurePerGame::ApplyConfiguration() {

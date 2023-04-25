@@ -52,7 +52,7 @@ public:
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
-    void SaveCheats();
+    void HandleAcceptedEvent();
 
     void HandleApplyButtonClicked();
 
