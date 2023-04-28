@@ -12,6 +12,7 @@
 #include <QWidget>
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
+#include "video_core/custom_textures/custom_tex_manager.h"
 
 class QKeyEvent;
 class QTouchEvent;
@@ -79,6 +80,7 @@ private:
     std::atomic<bool> stop_run{false};
     std::mutex running_mutex;
     std::condition_variable running_cv;
+    std::size_t number_textures;
 
     Frontend::GraphicsContext& core_context;
 

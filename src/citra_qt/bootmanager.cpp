@@ -60,10 +60,17 @@ static GMainWindow* GetMainWindow() {
 void EmuThread::run() {
     MicroProfileOnThreadCreate("EmuThread");
     const auto scope = core_context.Acquire();
+    Core::System& system = Core::System::GetInstance();
+
+    if (Settings::values.preload_textures) {
+        emit LoadProgress(VideoCore::LoadCallbackStage::Preload, 0, 0);
+        system.CustomTexManager().PreloadTextures(
+            stop_run, [this](VideoCore::LoadCallbackStage stage, std::size_t value,
+                             std::size_t total) { emit LoadProgress(stage, value, total); });
+    }
 
     emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
 
-    Core::System& system = Core::System::GetInstance();
     system.Renderer().Rasterizer()->LoadDiskResources(
         stop_run, [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
             emit LoadProgress(stage, value, total);
