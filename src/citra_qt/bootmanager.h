@@ -80,7 +80,6 @@ private:
     std::atomic<bool> stop_run{false};
     std::mutex running_mutex;
     std::condition_variable running_cv;
-    std::size_t number_textures;
 
     Frontend::GraphicsContext& core_context;
 
