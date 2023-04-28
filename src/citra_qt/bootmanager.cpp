@@ -62,6 +62,10 @@ void EmuThread::run() {
     const auto scope = core_context.Acquire();
     Core::System& system = Core::System::GetInstance();
 
+    if (Settings::values.custom_textures) {
+        system.CustomTexManager().FindCustomTextures();
+    }
+
     if (Settings::values.preload_textures) {
         emit LoadProgress(VideoCore::LoadCallbackStage::Preload, 0, 0);
         system.CustomTexManager().PreloadTextures(
