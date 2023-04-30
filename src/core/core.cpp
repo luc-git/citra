@@ -320,6 +320,9 @@ System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::st
     }
     perf_stats = std::make_unique<PerfStats>(title_id);
 
+    if (Settings::values.custom_textures) {
+        custom_tex_manager->FindCustomTextures();
+    }
     if (Settings::values.dump_textures) {
         custom_tex_manager->WriteConfig();
     }
