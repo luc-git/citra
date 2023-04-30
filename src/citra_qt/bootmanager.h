@@ -12,7 +12,6 @@
 #include <QWidget>
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
-#include "video_core/custom_textures/custom_tex_manager.h"
 
 class QKeyEvent;
 class QTouchEvent;
