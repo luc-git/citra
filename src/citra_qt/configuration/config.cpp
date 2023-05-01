@@ -14,6 +14,7 @@
 #include "input_common/udp/client.h"
 #include "network/network.h"
 #include "network/network_settings.h"
+#include "bootmanager.h"
 
 Config::Config(const std::string& config_name, ConfigType config_type) : type{config_type} {
     global = config_type == ConfigType::GlobalConfig;
@@ -652,10 +653,10 @@ void Config::ReadShortcutValues() {
     qt_config->beginGroup(QStringLiteral("Shortcuts"));
 
     for (const auto& [name, group, shortcut] : default_hotkeys) {
-#ifndef _WIN32
-        if (name == QStringLiteral("Unconfine Mouse Cursor"))
-            continue;
-#endif // _WIN32
+        if (GRenderWindow::GetWindowSystemType() != Frontend::WindowSystemType::Windows) {
+            if (name == QStringLiteral("Unconfine Mouse Cursor"))
+                continue;
+        }
         auto [keyseq, context] = shortcut;
         qt_config->beginGroup(group);
         qt_config->beginGroup(name);

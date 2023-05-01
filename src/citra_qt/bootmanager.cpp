@@ -41,8 +41,6 @@
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
-static Frontend::WindowSystemType GetWindowSystemType();
-
 EmuThread::EmuThread(Frontend::GraphicsContext& core_context) : core_context(core_context) {}
 
 EmuThread::~EmuThread() = default;
@@ -245,7 +243,7 @@ public:
         : RenderWidget(parent), is_secondary(is_secondary) {
         setAttribute(Qt::WA_NativeWindow);
         setAttribute(Qt::WA_PaintOnScreen);
-        if (GetWindowSystemType() == Frontend::WindowSystemType::Wayland) {
+        if (GRenderWindow::GetWindowSystemType() == Frontend::WindowSystemType::Wayland) {
             setAttribute(Qt::WA_DontCreateNativeAncestors);
         }
         windowHandle()->setSurfaceType(QWindow::OpenGLSurface);
@@ -349,7 +347,7 @@ struct SoftwareRenderWidget : public RenderWidget {
     }
 };
 
-static Frontend::WindowSystemType GetWindowSystemType() {
+Frontend::WindowSystemType GRenderWindow::GetWindowSystemType() {
     // Determine WSI type based on Qt platform.
     const QString platform_name = QGuiApplication::platformName();
     if (platform_name == QStringLiteral("windows"))
@@ -367,7 +365,7 @@ static Frontend::WindowSystemType GetWindowSystemType() {
 
 static Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window) {
     Frontend::EmuWindow::WindowSystemInfo wsi;
-    wsi.type = GetWindowSystemType();
+    wsi.type = GRenderWindow::GetWindowSystemType();
 
     if (window) {
 #if defined(WIN32)
