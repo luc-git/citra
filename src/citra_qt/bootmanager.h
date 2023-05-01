@@ -156,6 +156,8 @@ public:
 
     std::pair<u32, u32> ScaleTouch(const QPointF pos) const;
 
+    static Frontend::WindowSystemType GetWindowSystemType();
+
 public slots:
 
     void OnEmulationStarting(EmuThread* emu_thread);
