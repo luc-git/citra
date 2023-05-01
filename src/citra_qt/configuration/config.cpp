@@ -653,10 +653,10 @@ void Config::ReadShortcutValues() {
     qt_config->beginGroup(QStringLiteral("Shortcuts"));
 
     for (const auto& [name, group, shortcut] : default_hotkeys) {
-        if (GRenderWindow::GetWindowSystemType() != Frontend::WindowSystemType::Windows) {
-            if (name == QStringLiteral("Unconfine Mouse Cursor"))
-                continue;
-        }
+#ifndef _WIN32
+        if (name == QStringLiteral("Unconfine Mouse Cursor"))
+            continue;
+#endif // _WIN32
         auto [keyseq, context] = shortcut;
         qt_config->beginGroup(group);
         qt_config->beginGroup(name);
