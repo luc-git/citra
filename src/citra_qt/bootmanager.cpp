@@ -25,6 +25,7 @@
 #include "input_common/motion_emu.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
+#include "citra_qt/uisettings.h"
 
 #ifdef HAS_OPENGL
 #include <QOffscreenSurface>
@@ -442,6 +443,8 @@ void GRenderWindow::OnFramebufferSizeChanged() {
     const u32 width = static_cast<u32>(this->width() * pixel_ratio);
     const u32 height = static_cast<u32>(this->height() * pixel_ratio);
     UpdateCurrentFramebufferLayout(width, height);
+    if (confined)
+        ConfineMouse();
 }
 
 void GRenderWindow::BackupGeometry() {
@@ -505,6 +508,19 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
         InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
     }
     emit MouseActivity();
+    if (!confined && UISettings::values.confine_mouse_to_the_touchscreen.GetValue()) {
+        if (ConfineMouse()) {
+            HotkeyRegistry registry;
+            registry.LoadHotkeys();
+            QString hotkey = registry
+                                 .GetKeySequence(QStringLiteral("Main Window"),
+                                                 QStringLiteral("Unconfine Mouse Cursor"))
+                                 .toString();
+            GetMainWindow()->setWindowTitle(GetMainWindow()->windowTitle() +
+                                            tr(" (Mouse is confined press ") + hotkey +
+                                            tr(" to release cursor)"));
+        }
+    }
 }
 
 void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
@@ -587,6 +603,8 @@ void GRenderWindow::focusOutEvent(QFocusEvent* event) {
 void GRenderWindow::focusInEvent(QFocusEvent* event) {
     QWidget::focusInEvent(event);
     has_focus = true;
+    UnconfineMouse();
+    confined = false;
 }
 
 void GRenderWindow::resizeEvent(QResizeEvent* event) {
@@ -740,6 +758,11 @@ void GRenderWindow::showEvent(QShowEvent* event) {
     QWidget::showEvent(event);
 }
 
+void GRenderWindow::OnFramebufferLayoutChanged() {
+    if (confined)
+        ConfineMouse();
+}
+
 std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() const {
 #ifdef HAS_OPENGL
     const auto graphics_api = Settings::values.graphics_api.GetValue();
@@ -752,4 +775,32 @@ std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() 
     }
 #endif
     return std::make_unique<DummyContext>();
+}
+
+bool GRenderWindow::ConfineMouse() {
+    Layout::FramebufferLayout var = GetFramebufferLayout();
+#ifdef _WIN32
+    RECT rectangle;
+    rectangle.left = child_widget->mapToGlobal({static_cast<int>(var.bottom_screen.left), 0}).x();
+    rectangle.right = child_widget->mapToGlobal({static_cast<int>(var.bottom_screen.right), 0}).x();
+    rectangle.bottom =
+        child_widget->mapToGlobal({0, static_cast<int>(var.bottom_screen.bottom)}).y();
+    rectangle.top = child_widget->mapToGlobal({0, static_cast<int>(var.bottom_screen.top)}).y();
+    if (ClipCursor(&rectangle)) {
+        confined = true;
+        return true;
+    } else
+        return false;
+#endif // _WIN32
+}
+
+void GRenderWindow::UnconfineMouse() {
+#ifdef _WIN32
+    if (confined)
+        if (ClipCursor(NULL))
+            confined = false;
+        else
+            return;
+#endif // _WIN32
+    GetMainWindow()->UpdateWindowTitle();
 }

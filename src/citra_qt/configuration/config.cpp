@@ -54,7 +54,7 @@ const std::array<std::array<int, 5>, Settings::NativeAnalog::NumAnalogs> Config:
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
-const std::array<UISettings::Shortcut, 28> Config::default_hotkeys {{
+const std::array<UISettings::Shortcut, 29> Config::default_hotkeys {{
      {QStringLiteral("Advance Frame"),            QStringLiteral("Main Window"), {QStringLiteral(""),     Qt::ApplicationShortcut}},
      {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::WidgetWithChildrenShortcut}},
      {QStringLiteral("Continue/Pause Emulation"), QStringLiteral("Main Window"), {QStringLiteral("F4"),     Qt::WindowShortcut}},
@@ -83,6 +83,7 @@ const std::array<UISettings::Shortcut, 28> Config::default_hotkeys {{
      {QStringLiteral("Toggle Status Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+S"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Texture Dumping"),   QStringLiteral("Main Window"), {QStringLiteral(""),       Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Custom Textures"),   QStringLiteral("Main Window"), {QStringLiteral("F7"),     Qt::ApplicationShortcut}},
+     {QStringLiteral("Unconfine Mouse Cursor"),   QStringLiteral("Main Window"), {QStringLiteral("Ctrl+U"), Qt::ApplicationShortcut}}
     }};
 // clang-format on
 
@@ -651,6 +652,11 @@ void Config::ReadShortcutValues() {
     qt_config->beginGroup(QStringLiteral("Shortcuts"));
 
     for (const auto& [name, group, shortcut] : default_hotkeys) {
+#ifndef _WIN32
+        if (name == QStringLiteral("Unconfine Mouse Cursor"))
+            continue;
+#endif // _WIN32
+        auto [keyseq, context] = shortcut;
         qt_config->beginGroup(group);
         qt_config->beginGroup(name);
         // No longer using ReadSetting for shortcut.second as it innacurately returns a value of 1
@@ -758,6 +764,7 @@ void Config::ReadUIValues() {
         ReadBasicSetting(UISettings::values.pause_when_in_background);
         ReadBasicSetting(UISettings::values.hide_mouse);
     }
+    UISettings::values.hide_mouse = ReadSetting(QStringLiteral("ConfineMouse"), false).toBool();
 
     qt_config->endGroup();
 }
@@ -1130,6 +1137,10 @@ void Config::SaveShortcutValues() {
     for (std::size_t i = 0; i < default_hotkeys.size(); i++) {
         const auto& [name, group, shortcut] = UISettings::values.shortcuts[i];
         const auto& default_hotkey = default_hotkeys[i].shortcut;
+#ifndef _WIN32
+        if (default_hotkeys[i].name == QStringLiteral("Unconfine Mouse Cursor"))
+            continue;
+#endif // _WIN32
 
         qt_config->beginGroup(group);
         qt_config->beginGroup(name);
@@ -1214,6 +1225,7 @@ void Config::SaveUIValues() {
         WriteBasicSetting(UISettings::values.show_console);
         WriteBasicSetting(UISettings::values.pause_when_in_background);
         WriteBasicSetting(UISettings::values.hide_mouse);
+        WriteBasicSetting(UISettings::values.confine_mouse_to_the_touchscreen);
     }
 
     qt_config->endGroup();

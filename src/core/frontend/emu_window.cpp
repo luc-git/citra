@@ -230,6 +230,7 @@ void EmuWindow::UpdateCurrentFramebufferLayout(unsigned width, unsigned height,
         layout = Layout::GetCardboardSettings(layout);
     }
     NotifyFramebufferLayoutChanged(layout);
+    OnFramebufferLayoutChanged();
 }
 
 void EmuWindow::UpdateMinimumWindowSize(std::pair<unsigned, unsigned> min_size) {

@@ -28,6 +28,9 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureGeneral>()) {
 
     ui->setupUi(this);
+#ifndef _WIN32
+    ui->toggle_confine_mouse_touchscreen->setVisible(false);
+#endif // !1
 
     // Set a minimum width for the label to prevent the slider from changing size.
     // This scales across DPIs, and is acceptable for uncapitalized strings.
@@ -75,6 +78,8 @@ void ConfigureGeneral::SetConfiguration() {
         ui->toggle_update_check->setChecked(
             UISettings::values.check_for_update_on_start.GetValue());
         ui->toggle_auto_update->setChecked(UISettings::values.update_on_close.GetValue());
+        ui->toggle_confine_mouse_touchscreen->setChecked(
+            UISettings::values.confine_mouse_to_the_touchscreen.GetValue());
     }
 
     if (Settings::values.frame_limit.GetValue() == 0) {
@@ -165,12 +170,14 @@ void ConfigureGeneral::ApplyConfiguration() {
         [this](s32) { return ui->screenshot_dir_path->text().toStdString(); });
 
     if (Settings::IsConfiguringGlobal()) {
+        UISettings::values.check_for_update_on_start = ui->toggle_update_check->isChecked();
+        UISettings::values.update_on_close = ui->toggle_auto_update->isChecked();
         UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
         UISettings::values.pause_when_in_background = ui->toggle_background_pause->isChecked();
         UISettings::values.hide_mouse = ui->toggle_hide_mouse->isChecked();
 
-        UISettings::values.check_for_update_on_start = ui->toggle_update_check->isChecked();
-        UISettings::values.update_on_close = ui->toggle_auto_update->isChecked();
+        UISettings::values.confine_mouse_to_the_touchscreen =
+            ui->toggle_confine_mouse_touchscreen->isChecked();
     }
 }
 
