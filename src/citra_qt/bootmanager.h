@@ -203,7 +203,6 @@ private:
     bool first_frame = false;
     bool has_focus = false;
     bool confined = false;
-    QPoint point;
 
 protected:
     void showEvent(QShowEvent* event) override;

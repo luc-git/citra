@@ -779,10 +779,10 @@ std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() 
 
 bool GRenderWindow::ConfineMouse() {
     Layout::FramebufferLayout var = GetFramebufferLayout();
-    int left = child_widget->mapToGlobal({static_cast<int>(var.bottom_screen.left), 0}).x();
-    int right = child_widget->mapToGlobal({static_cast<int>(var.bottom_screen.right), 0}).x();
-    int bottom = child_widget->mapToGlobal({0, static_cast<int>(var.bottom_screen.bottom)}).y();
-    int top = child_widget->mapToGlobal({0, static_cast<int>(var.bottom_screen.top)}).y();
+    int left = child_widget->mapToGlobal(QPoint(var.bottom_screen.left, 0)).x();
+    int right = child_widget->mapToGlobal(QPoint(var.bottom_screen.right, 0)).x();
+    int bottom = child_widget->mapToGlobal(QPoint(0, var.bottom_screen.bottom)).y();
+    int top = child_widget->mapToGlobal(QPoint(0, var.bottom_screen.top)).y();
 #ifdef _WIN32
     RECT rectangle;
     rectangle.left = left;
