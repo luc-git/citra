@@ -161,6 +161,7 @@ public slots:
     void OnEmulationStarting(EmuThread* emu_thread);
     void OnEmulationStopping();
     void OnFramebufferSizeChanged();
+    void UnconfineMouse();
 
 signals:
     /// Emitted when the window is closed
@@ -178,8 +179,10 @@ private:
     void TouchBeginEvent(const QTouchEvent* event);
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
+    bool ConfineMouse();
 
     void OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) override;
+    void OnFramebufferLayoutChanged() override;
 
     bool InitializeOpenGL();
     void InitializeSoftware();
@@ -199,6 +202,8 @@ private:
     QByteArray geometry;
     bool first_frame = false;
     bool has_focus = false;
+    bool confined = false;
+    QPoint point;
 
 protected:
     void showEvent(QShowEvent* event) override;

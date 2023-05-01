@@ -123,7 +123,6 @@ __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 #endif
 
 constexpr int default_mouse_timeout = 2500;
-
 /**
  * "Callouts" are one-time instructional messages shown to the user. In the config settings, there
  * is a bitfield "callout_flags" options, used to track if a message has already been shown to the
@@ -589,57 +588,10 @@ void GMainWindow::InitializeHotkeys() {
     // We use "static" here in order to avoid capturing by lambda due to a MSVC bug, which makes
     // the variable hold a garbage value after this function exits
     static constexpr u16 SPEED_LIMIT_STEP = 5;
-    connect_shortcut(QStringLiteral("Increase Speed Limit"), [&] {
-        if (Settings::values.frame_limit.GetValue() == 0) {
-            return;
-        }
-        if (Settings::values.frame_limit.GetValue() < 995 - SPEED_LIMIT_STEP) {
-            Settings::values.frame_limit.SetValue(Settings::values.frame_limit.GetValue() +
-                                                  SPEED_LIMIT_STEP);
-        } else {
-            Settings::values.frame_limit = 0;
-        }
-        UpdateStatusBar();
-    });
-    connect_shortcut(QStringLiteral("Decrease Speed Limit"), [&] {
-        if (Settings::values.frame_limit.GetValue() == 0) {
-            Settings::values.frame_limit = 995;
-        } else if (Settings::values.frame_limit.GetValue() > SPEED_LIMIT_STEP) {
-            Settings::values.frame_limit.SetValue(Settings::values.frame_limit.GetValue() -
-                                                  SPEED_LIMIT_STEP);
-            UpdateStatusBar();
-        }
-        UpdateStatusBar();
-    });
-    connect_shortcut(QStringLiteral("Mute Audio"),
-                     [] { Settings::values.audio_muted = !Settings::values.audio_muted; });
-
-    // We use "static" here in order to avoid capturing by lambda due to a MSVC bug, which makes the
-    // variable hold a garbage value after this function exits
-    static constexpr u16 FACTOR_3D_STEP = 5;
-    connect_shortcut(QStringLiteral("Decrease 3D Factor"), [this] {
-        const auto factor_3d = Settings::values.factor_3d.GetValue();
-        if (factor_3d > 0) {
-            if (factor_3d % FACTOR_3D_STEP != 0) {
-                Settings::values.factor_3d = factor_3d - (factor_3d % FACTOR_3D_STEP);
-            } else {
-                Settings::values.factor_3d = factor_3d - FACTOR_3D_STEP;
-            }
-            UpdateStatusBar();
-        }
-    });
-    connect_shortcut(QStringLiteral("Increase 3D Factor"), [this] {
-        const auto factor_3d = Settings::values.factor_3d.GetValue();
-        if (factor_3d < 100) {
-            if (factor_3d % FACTOR_3D_STEP != 0) {
-                Settings::values.factor_3d =
-                    factor_3d + FACTOR_3D_STEP - (factor_3d % FACTOR_3D_STEP);
-            } else {
-                Settings::values.factor_3d = factor_3d + FACTOR_3D_STEP;
-            }
-            UpdateStatusBar();
-        }
-    });
+#ifdef _WIN32
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Unconfine Mouse Cursor"), this),
+            &QShortcut::activated, ui->action_Unconfine_Mouse, &QAction::trigger);
+#endif // _WIN32
 }
 
 void GMainWindow::ShowUpdaterWidgets() {
@@ -741,6 +693,10 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(this, &GMainWindow::CIAInstallFinished, this, &GMainWindow::OnCIAInstallFinished);
     connect(this, &GMainWindow::UpdateThemedIcons, multiplayer_state,
             &MultiplayerState::UpdateThemedIcons);
+#ifdef _WIN32
+    connect(ui->action_Unconfine_Mouse, &QAction::triggered, render_window,
+            &GRenderWindow::UnconfineMouse);
+#endif // _WIN32
 }
 
 void GMainWindow::ConnectMenuEvents() {

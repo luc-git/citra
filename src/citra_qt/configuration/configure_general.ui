@@ -43,6 +43,13 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QCheckBox" name="toggle_confine_mouse_touchscreen">
+          <property name="text">
+           <string>confine mouse touchscreen</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
