@@ -6,6 +6,7 @@
 #include <array>
 #include <QKeySequence>
 #include <QSettings>
+#include "citra_qt/bootmanager.h"
 #include "citra_qt/configuration/config.h"
 #include "common/file_util.h"
 #include "common/settings.h"
@@ -14,7 +15,6 @@
 #include "input_common/udp/client.h"
 #include "network/network.h"
 #include "network/network_settings.h"
-#include "bootmanager.h"
 
 Config::Config(const std::string& config_name, ConfigType config_type) : type{config_type} {
     global = config_type == ConfigType::GlobalConfig;

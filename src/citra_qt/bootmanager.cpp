@@ -12,6 +12,7 @@
 #include <QWindow>
 #include "citra_qt/bootmanager.h"
 #include "citra_qt/main.h"
+#include "citra_qt/uisettings.h"
 #include "common/color.h"
 #include "common/microprofile.h"
 #include "common/scm_rev.h"
@@ -26,7 +27,6 @@
 #include "video_core/custom_textures/custom_tex_manager.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
-#include "citra_qt/uisettings.h"
 
 #ifdef HAS_OPENGL
 #include <QOffscreenSurface>
@@ -785,13 +785,16 @@ std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() 
 
 bool GRenderWindow::ConfineMouse() {
     Layout::FramebufferLayout var = GetFramebufferLayout();
+    int left = child_widget->mapToGlobal({static_cast<int>(var.bottom_screen.left), 0}).x();
+    int right = child_widget->mapToGlobal({static_cast<int>(var.bottom_screen.right), 0}).x();
+    int bottom = child_widget->mapToGlobal({0, static_cast<int>(var.bottom_screen.bottom)}).y();
+    int top = child_widget->mapToGlobal({0, static_cast<int>(var.bottom_screen.top)}).y();
 #ifdef _WIN32
     RECT rectangle;
-    rectangle.left = child_widget->mapToGlobal({static_cast<int>(var.bottom_screen.left), 0}).x();
-    rectangle.right = child_widget->mapToGlobal({static_cast<int>(var.bottom_screen.right), 0}).x();
-    rectangle.bottom =
-        child_widget->mapToGlobal({0, static_cast<int>(var.bottom_screen.bottom)}).y();
-    rectangle.top = child_widget->mapToGlobal({0, static_cast<int>(var.bottom_screen.top)}).y();
+    rectangle.left = left;
+    rectangle.right = right;
+    rectangle.bottom = bottom;
+    rectangle.top = top;
     if (ClipCursor(&rectangle)) {
         confined = true;
         return true;
