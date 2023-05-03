@@ -32,7 +32,8 @@
 #include "jni/camera/ndk_camera.h"
 #include "jni/camera/still_image_camera.h"
 #include "jni/config.h"
-#include "jni/emu_window/emu_window.h"
+#include "jni/emu_window/emu_window_gl.h"
+#include "jni/emu_window/emu_window_vk.h"
 #include "jni/game_settings.h"
 #include "jni/id_cache.h"
 #include "jni/input_manager.h"
@@ -152,6 +153,9 @@ static Core::System::ResultStatus RunCitra(const std::string& filepath) {
     switch (graphics_api) {
     case Settings::GraphicsAPI::OpenGL:
         window = std::make_unique<EmuWindow_Android>(s_surf);
+        break;
+    case Settings::GraphicsAPI::Vulkan:
+        window = std::make_unique<EmuWindow_Android_Vulkan>(s_surf);
         break;
     default:
         LOG_CRITICAL(Frontend, "Unknown graphics API {}, using OpenGL", graphics_api);

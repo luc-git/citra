@@ -102,6 +102,14 @@ cpu_clock_percentage =
 # 1: OpenGLES (default)
 graphics_api =
 
+# Whether to compile shaders on multiple worker threads
+# 0: Off, 1: On (default)
+async_shader_compilation
+
+# Whether to emit PICA fragment shader using SPIRV or GLSL
+# 1: SPIR-V (default), 0: GLSL
+spirv_shader_gen =
+
 # Whether to use hardware shaders to emulate 3DS shaders
 # 0: Software, 1 (default): Hardware
 use_hw_shader =

@@ -2331,9 +2331,11 @@ void GMainWindow::ShowMouseCursor() {
 }
 
 void GMainWindow::UpdateAPIIndicator(bool update) {
-    static std::array graphics_apis = {QStringLiteral("SOFTWARE"), QStringLiteral("OPENGL")};
+    static std::array graphics_apis = {QStringLiteral("SOFTWARE"), QStringLiteral("OPENGL"),
+                                       QStringLiteral("VULKAN")};
 
-    static std::array graphics_api_colors = {QStringLiteral("#3ae400"), QStringLiteral("#00ccdd")};
+    static std::array graphics_api_colors = {QStringLiteral("#3ae400"), QStringLiteral("#00ccdd"),
+                                             QStringLiteral("#91242a")};
 
     u32 api_index = static_cast<u32>(Settings::values.graphics_api.GetValue());
     if (update) {
