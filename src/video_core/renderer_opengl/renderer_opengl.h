@@ -60,7 +60,7 @@ public:
                             Frontend::EmuWindow* secondary_window);
     ~RendererOpenGL() override;
 
-    [[nodiscard]] VideoCore::RasterizerInterface* Rasterizer() const override {
+    [[nodiscard]] VideoCore::RasterizerInterface* Rasterizer() override {
         return rasterizer.get();
     }
 

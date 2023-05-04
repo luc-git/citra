@@ -30,11 +30,17 @@ public:
 
 private:
     void SetupPerGameUI();
+    void DiscoverPhysicalDevices();
+    void SetPhysicalDeviceComboVisibility(int index);
 
     ConfigurationShared::CheckState use_hw_shader;
     ConfigurationShared::CheckState shaders_accurate_mul;
     ConfigurationShared::CheckState use_disk_shader_cache;
     ConfigurationShared::CheckState use_vsync_new;
+    ConfigurationShared::CheckState async_shader_compilation;
+    ConfigurationShared::CheckState async_presentation;
+    ConfigurationShared::CheckState spirv_shader_gen;
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;
+    bool physical_devices_discovered = false;
 };

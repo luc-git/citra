@@ -121,11 +121,11 @@ jobs:
         run: ./.ci/macos/universal.sh
         env:
           ARTIFACTS: macos-x86_64 macos-arm64
-#      - name: Upload
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: macos
-#          path: artifacts/
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos
+          path: artifacts/
       - name: Delete intermediate artifacts
         uses: geekyeggo/delete-artifact@v2
         with:

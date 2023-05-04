@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <deque>
 #include "video_core/rasterizer_cache/framebuffer_base.h"
 #include "video_core/rasterizer_cache/rasterizer_cache_base.h"
 #include "video_core/renderer_opengl/gl_blit_helper.h"
@@ -51,15 +52,9 @@ struct HostTextureTag {
 static_assert(std::has_unique_object_representations_v<HostTextureTag>,
               "HostTextureTag is not suitable for hashing!");
 
-struct Allocation {
+struct Allocation : public HostTextureTag {
     std::array<OGLTexture, 3> textures;
     std::array<GLuint, 3> handles;
-    FormatTuple tuple;
-    u32 width;
-    u32 height;
-    u32 levels;
-    u32 res_scale;
-    bool is_custom;
 
     operator bool() const noexcept {
         return textures[0].handle;
@@ -80,6 +75,8 @@ class TextureRuntime {
 public:
     explicit TextureRuntime(const Driver& driver, VideoCore::RendererBase& renderer);
     ~TextureRuntime();
+
+    void TickFrame();
 
     /// Clears all cached runtime resources
     void Reset();
@@ -111,7 +108,7 @@ public:
 
 private:
     /// Takes back ownership of the allocation for recycling
-    void Recycle(const HostTextureTag tag, Allocation&& alloc);
+    void Destroy(Allocation&& alloc);
 
     /// Allocates a texture with the specified dimentions and format
     Allocation Allocate(const VideoCore::SurfaceParams& params,
@@ -126,10 +123,11 @@ private:
     const Driver& driver;
     BlitHelper blit_helper;
     std::vector<u8> staging_buffer;
-    std::unordered_multimap<HostTextureTag, Allocation, HostTextureTag::Hash> alloc_cache;
     std::unordered_map<u64, OGLFramebuffer, Common::IdentityHash<u64>> framebuffer_cache;
+    std::unordered_multimap<HostTextureTag, Allocation, HostTextureTag::Hash> alloc_cache;
     std::array<OGLFramebuffer, 3> draw_fbos;
     std::array<OGLFramebuffer, 3> read_fbos;
+    u64 current_tick{0};
 };
 
 class Surface : public VideoCore::SurfaceBase {
@@ -177,9 +175,6 @@ private:
     /// Attempts to download without using an fbo
     bool DownloadWithoutFbo(const VideoCore::BufferTextureCopy& download,
                             const VideoCore::StagingData& staging);
-
-    /// Returns the texture tag of the current allocation
-    HostTextureTag MakeTag() const noexcept;
 
 private:
     const Driver* driver;

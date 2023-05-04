@@ -6,7 +6,10 @@
 
 #include <memory>
 #include "citra/emu_window/emu_window_sdl2.h"
-#include "core/frontend/emu_window.h"
+
+namespace Frontend {
+class GraphicsContext;
+}
 
 class EmuWindow_SDL2_VK final : public EmuWindow_SDL2 {
 public:

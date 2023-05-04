@@ -14,9 +14,6 @@
 #include "common/settings.h"
 #include "input_common/main.h"
 #include "jni/emu_window/emu_window_gl.h"
-#include "jni/id_cache.h"
-#include "jni/input_manager.h"
-#include "network/network.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
@@ -143,7 +140,7 @@ bool EmuWindow_Android_OpenGL::CreateWindowSurface() {
         return {};
     }
 
-    return !!egl_surface;
+    return egl_surface;
 }
 
 void EmuWindow_Android_OpenGL::DestroyWindowSurface() {
@@ -188,14 +185,13 @@ void EmuWindow_Android_OpenGL::StopPresenting() {
 }
 
 void EmuWindow_Android_OpenGL::TryPresenting() {
-    if (presenting_state != PresentingState::Running) {
-        if (presenting_state == PresentingState::Initial) {
-            eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context);
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-            presenting_state = PresentingState::Running;
-        } else {
-            return;
-        }
+    if (presenting_state == PresentingState::Initial) [[unlikely]] {
+        eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        presenting_state = PresentingState::Running;
+    }
+    if (presenting_state != PresentingState::Running) [[unlikely]] {
+        return;
     }
     eglSwapInterval(egl_display, Settings::values.use_vsync_new ? 1 : 0);
     if (VideoCore::g_renderer) {

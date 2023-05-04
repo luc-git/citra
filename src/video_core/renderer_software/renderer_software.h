@@ -18,7 +18,7 @@ public:
     explicit RendererSoftware(Core::System& system, Frontend::EmuWindow& window);
     ~RendererSoftware() override;
 
-    [[nodiscard]] VideoCore::RasterizerInterface* Rasterizer() const override {
+    [[nodiscard]] VideoCore::RasterizerInterface* Rasterizer() override {
         return rasterizer.get();
     }
 

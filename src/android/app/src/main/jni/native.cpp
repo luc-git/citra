@@ -152,14 +152,14 @@ static Core::System::ResultStatus RunCitra(const std::string& filepath) {
     const auto graphics_api = Settings::values.graphics_api.GetValue();
     switch (graphics_api) {
     case Settings::GraphicsAPI::OpenGL:
-        window = std::make_unique<EmuWindow_Android>(s_surf);
+        window = std::make_unique<EmuWindow_Android_OpenGL>(s_surf);
         break;
     case Settings::GraphicsAPI::Vulkan:
         window = std::make_unique<EmuWindow_Android_Vulkan>(s_surf);
         break;
     default:
-        LOG_CRITICAL(Frontend, "Unknown graphics API {}, using OpenGL", graphics_api);
-        window = std::make_unique<EmuWindow_Android>(s_surf);
+        LOG_CRITICAL(Frontend, "Unknown graphics API {}, using Vulkan", graphics_api);
+        window = std::make_unique<EmuWindow_Android_Vulkan>(s_surf);
     }
 
     Core::System& system{Core::System::GetInstance()};

@@ -11,6 +11,7 @@
 #include "citra/emu_window/emu_window_sdl2_vk.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
+#include "core/frontend/emu_window.h"
 
 class DummyContext : public Frontend::GraphicsContext {};
 
@@ -33,7 +34,7 @@ EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(bool fullscreen, bool is_secondary)
 
     if (fullscreen) {
         Fullscreen();
-        ShowCursor(false);
+        SDL_ShowCursor(false);
     }
 
     switch (wm.subsystem) {
@@ -59,7 +60,7 @@ EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(bool fullscreen, bool is_secondary)
 #endif
 #ifdef SDL_VIDEO_DRIVER_COCOA
     case SDL_SYSWM_TYPE::SDL_SYSWM_COCOA:
-        window_info.type = Frontend::WindowSystemType::Cocoa;
+        window_info.type = Frontend::WindowSystemType::MacOS;
         window_info.render_surface = SDL_Metal_CreateView(render_window);
         break;
 #endif

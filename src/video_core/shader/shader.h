@@ -110,7 +110,7 @@ struct GSEmitter {
     struct Handlers {
         VertexHandler vertex_handler;
         WindingSetter winding_setter;
-    } * handlers;
+    }* handlers;
 
     GSEmitter();
     ~GSEmitter();

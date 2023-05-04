@@ -182,7 +182,7 @@ private:
     void OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) override;
 
     bool InitializeOpenGL();
-    bool InitializeVulkan();
+    void InitializeVulkan();
     void InitializeSoftware();
     bool LoadOpenGL();
 

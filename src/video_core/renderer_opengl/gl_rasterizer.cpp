@@ -639,7 +639,6 @@ void RasterizerOpenGL::UnbindSpecial() {
     state.image_shadow_texture_ny = 0;
     state.image_shadow_texture_pz = 0;
     state.image_shadow_texture_nz = 0;
-    state.image_shadow_buffer = 0;
 }
 
 void RasterizerOpenGL::NotifyFixedFunctionPicaRegisterChanged(u32 id) {
@@ -997,9 +996,9 @@ void RasterizerOpenGL::SyncAndUploadLUTs() {
     std::tie(buffer, offset, invalidate) = texture_buffer.Map(max_size, sizeof(Common::Vec4f));
 
     // helper function for SyncProcTexNoiseLUT/ColorMap/AlphaMap
-    auto SyncProcTexValueLUT = [this, buffer, offset, invalidate, &bytes_used](
-                                   const std::array<Pica::State::ProcTex::ValueEntry, 128>& lut,
-                                   std::array<Common::Vec2f, 128>& lut_data, GLint& lut_offset) {
+    auto sync_proctex_value_lut = [this, buffer, offset, invalidate, &bytes_used](
+                                      const std::array<Pica::State::ProcTex::ValueEntry, 128>& lut,
+                                      std::array<Common::Vec2f, 128>& lut_data, GLint& lut_offset) {
         std::array<Common::Vec2f, 128> new_data;
         std::transform(lut.begin(), lut.end(), new_data.begin(), [](const auto& entry) {
             return Common::Vec2f{entry.ToFloat(), entry.DiffToFloat()};
@@ -1017,22 +1016,22 @@ void RasterizerOpenGL::SyncAndUploadLUTs() {
 
     // Sync the proctex noise lut
     if (uniform_block_data.proctex_noise_lut_dirty || invalidate) {
-        SyncProcTexValueLUT(Pica::g_state.proctex.noise_table, proctex_noise_lut_data,
-                            uniform_block_data.data.proctex_noise_lut_offset);
+        sync_proctex_value_lut(Pica::g_state.proctex.noise_table, proctex_noise_lut_data,
+                               uniform_block_data.data.proctex_noise_lut_offset);
         uniform_block_data.proctex_noise_lut_dirty = false;
     }
 
     // Sync the proctex color map
     if (uniform_block_data.proctex_color_map_dirty || invalidate) {
-        SyncProcTexValueLUT(Pica::g_state.proctex.color_map_table, proctex_color_map_data,
-                            uniform_block_data.data.proctex_color_map_offset);
+        sync_proctex_value_lut(Pica::g_state.proctex.color_map_table, proctex_color_map_data,
+                               uniform_block_data.data.proctex_color_map_offset);
         uniform_block_data.proctex_color_map_dirty = false;
     }
 
     // Sync the proctex alpha map
     if (uniform_block_data.proctex_alpha_map_dirty || invalidate) {
-        SyncProcTexValueLUT(Pica::g_state.proctex.alpha_map_table, proctex_alpha_map_data,
-                            uniform_block_data.data.proctex_alpha_map_offset);
+        sync_proctex_value_lut(Pica::g_state.proctex.alpha_map_table, proctex_alpha_map_data,
+                               uniform_block_data.data.proctex_alpha_map_offset);
         uniform_block_data.proctex_alpha_map_dirty = false;
     }
 

@@ -177,7 +177,7 @@
     </integer-array>
 
     <string-array name="graphicsApiNames">
-        <item>OpenGL</item>
+        <item>OpenGL-ES</item>
         <item>Vulkan</item>
     </string-array>
 

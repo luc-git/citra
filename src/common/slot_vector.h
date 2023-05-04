@@ -118,8 +118,9 @@ private:
                 if ((bits & 1) == 0) {
                     continue;
                 }
+                T& new_value = new_values[i].object;
                 T& old_value = values[i].object;
-                new (&new_values[i].object) T(std::move(old_value));
+                new (&new_value) T(std::move(old_value));
                 old_value.~T();
             }
             index += 64;

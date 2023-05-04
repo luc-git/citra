@@ -2,19 +2,11 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <algorithm>
-#include <array>
 #include <cstdlib>
-#include <string>
 #include <android/native_window_jni.h>
 #include "common/logging/log.h"
 #include "common/settings.h"
-#include "input_common/main.h"
 #include "jni/emu_window/emu_window_vk.h"
-#include "jni/id_cache.h"
-#include "jni/input_manager.h"
-#include "network/network.h"
-#include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
 class SharedContext_Android : public Frontend::GraphicsContext {};
@@ -51,11 +43,7 @@ void EmuWindow_Android_Vulkan::StopPresenting() {
 }
 
 void EmuWindow_Android_Vulkan::TryPresenting() {
-    if (presenting_state != PresentingState::Running) {
-        if (presenting_state == PresentingState::Initial) {
-            presenting_state = PresentingState::Running;
-        } else {
-            return;
-        }
+    if (presenting_state == PresentingState::Initial) {
+        presenting_state = PresentingState::Running;
     }
 }
