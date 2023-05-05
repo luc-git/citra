@@ -91,8 +91,6 @@ public:
 
     bool DropAction(QDropEvent* event);
     void AcceptDropEvent(QDropEvent* event);
-    // Moved function declaration here to be able to call it from bootmanager.cpp
-    void UpdateWindowTitle();
 
 public slots:
     void OnAppFocusStateChanged(Qt::ApplicationState state);
@@ -253,6 +251,7 @@ private:
     void UpdateStatusBar();
     void UpdateBootHomeMenuState();
     void LoadTranslation();
+    void UpdateWindowTitle();
     void UpdateUISettings();
     void RetranslateStatusBar();
     void InstallCIA(QStringList filepaths);
