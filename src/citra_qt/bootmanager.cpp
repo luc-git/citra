@@ -756,6 +756,7 @@ void GRenderWindow::OnEmulationStopping() {
 
 void GRenderWindow::showEvent(QShowEvent* event) {
     QWidget::showEvent(event);
+    original_window_title = GetMainWindow()->windowTitle();
 }
 
 void GRenderWindow::OnFramebufferLayoutChanged() {
@@ -805,5 +806,5 @@ void GRenderWindow::UnconfineMouse() {
         else
             return;
 #endif // _WIN32
-    GetMainWindow()->UpdateWindowTitle();
+    GetMainWindow()->setWindowTitle(original_window_title);
 }

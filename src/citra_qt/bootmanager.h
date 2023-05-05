@@ -203,6 +203,7 @@ private:
     bool first_frame = false;
     bool has_focus = false;
     bool confined = false;
+    QString original_window_title;
 
 protected:
     void showEvent(QShowEvent* event) override;
