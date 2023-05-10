@@ -653,10 +653,6 @@ void Config::ReadShortcutValues() {
     qt_config->beginGroup(QStringLiteral("Shortcuts"));
 
     for (const auto& [name, group, shortcut] : default_hotkeys) {
-#ifndef _WIN32
-        if (name == QStringLiteral("Unconfine Mouse Cursor"))
-            continue;
-#endif // _WIN32
         auto [keyseq, context] = shortcut;
         qt_config->beginGroup(group);
         qt_config->beginGroup(name);
@@ -1138,10 +1134,6 @@ void Config::SaveShortcutValues() {
     for (std::size_t i = 0; i < default_hotkeys.size(); i++) {
         const auto& [name, group, shortcut] = UISettings::values.shortcuts[i];
         const auto& default_hotkey = default_hotkeys[i].shortcut;
-#ifndef _WIN32
-        if (default_hotkeys[i].name == QStringLiteral("Unconfine Mouse Cursor"))
-            continue;
-#endif // _WIN32
 
         qt_config->beginGroup(group);
         qt_config->beginGroup(name);

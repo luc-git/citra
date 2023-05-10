@@ -28,9 +28,6 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureGeneral>()) {
 
     ui->setupUi(this);
-#ifndef _WIN32
-    ui->toggle_confine_mouse_touchscreen->setVisible(false);
-#endif // !1
 
     // Set a minimum width for the label to prevent the slider from changing size.
     // This scales across DPIs, and is acceptable for uncapitalized strings.

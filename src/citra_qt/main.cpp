@@ -640,10 +640,8 @@ void GMainWindow::InitializeHotkeys() {
             UpdateStatusBar();
         }
     });
-#ifdef _WIN32
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Unconfine Mouse Cursor"), this),
             &QShortcut::activated, ui->action_Unconfine_Mouse, &QAction::trigger);
-#endif // _WIN32
 }
 
 void GMainWindow::ShowUpdaterWidgets() {
@@ -745,10 +743,8 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(this, &GMainWindow::CIAInstallFinished, this, &GMainWindow::OnCIAInstallFinished);
     connect(this, &GMainWindow::UpdateThemedIcons, multiplayer_state,
             &MultiplayerState::UpdateThemedIcons);
-#ifdef _WIN32
     connect(ui->action_Unconfine_Mouse, &QAction::triggered, render_window,
             &GRenderWindow::UnconfineMouse);
-#endif // _WIN32
 }
 
 void GMainWindow::ConnectMenuEvents() {
