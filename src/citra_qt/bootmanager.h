@@ -106,8 +106,6 @@ signals:
     void LoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
 
     void HideLoadingScreen();
-
-    void ConfineMouse();
 };
 
 class GRenderWindow : public QWidget, public Frontend::EmuWindow {
@@ -145,7 +143,6 @@ public:
 
     void focusOutEvent(QFocusEvent* event) override;
     void focusInEvent(QFocusEvent* event) override;
-    void leaveEvent(QEvent* event) override;
     bool HasFocus() const {
         return has_focus;
     }
@@ -165,7 +162,6 @@ public slots:
     void OnEmulationStopping();
     void OnFramebufferSizeChanged();
     void UnconfineMouse();
-    void OnConfineMouse();
 
 signals:
     /// Emitted when the window is closed
@@ -183,13 +179,14 @@ private:
     void TouchBeginEvent(const QTouchEvent* event);
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
+    bool ConfineMouse();
 
     void OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) override;
+    void OnFramebufferLayoutChanged() override;
 
     bool InitializeOpenGL();
     void InitializeSoftware();
     bool LoadOpenGL();
-    bool leaved;
 
     QWidget* child_widget = nullptr;
 

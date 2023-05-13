@@ -1216,8 +1216,6 @@ void GMainWindow::BootGame(const QString& filename) {
             &RegistersWidget::OnDebugModeLeft, Qt::BlockingQueuedConnection);
     connect(emu_thread.get(), &EmuThread::DebugModeLeft, waitTreeWidget,
             &WaitTreeWidget::OnDebugModeLeft, Qt::BlockingQueuedConnection);
-    connect(emu_thread.get(), &EmuThread::ConfineMouse, render_window,
-            &GRenderWindow::OnConfineMouse);
 
     connect(emu_thread.get(), &EmuThread::LoadProgress, loading_screen,
             &LoadingScreen::OnLoadProgress, Qt::QueuedConnection);
