@@ -451,8 +451,6 @@ void GRenderWindow::OnFramebufferSizeChanged() {
     const u32 width = static_cast<u32>(this->width() * pixel_ratio);
     const u32 height = static_cast<u32>(this->height() * pixel_ratio);
     UpdateCurrentFramebufferLayout(width, height);
-    if (confined)
-        ConfineMouse();
 }
 
 void GRenderWindow::BackupGeometry() {
@@ -508,6 +506,11 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
         return; // touch input is handled in TouchBeginEvent
     }
 
+    if (UISettings::values.confine_mouse_to_the_touchscreen.GetValue() && !confined) {
+        ConfineMouse();
+        setCursor(QCursor(Qt::BlankCursor));
+        confined = true;
+    }
     auto pos = event->pos();
     if (event->button() == Qt::LeftButton) {
         const auto [x, y] = ScaleTouch(pos);
@@ -515,20 +518,7 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
     } else if (event->button() == Qt::RightButton) {
         InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
     }
-    emit MouseActivity();
-    if (!confined && UISettings::values.confine_mouse_to_the_touchscreen.GetValue()) {
-        if (ConfineMouse()) {
-            HotkeyRegistry registry;
-            registry.LoadHotkeys();
-            QString hotkey = registry
-                                 .GetKeySequence(QStringLiteral("Main Window"),
-                                                 QStringLiteral("Unconfine Mouse Cursor"))
-                                 .toString();
-            GetMainWindow()->setWindowTitle(GetMainWindow()->windowTitle() +
-                                            tr(" (Mouse is confined press ") + hotkey +
-                                            tr(" to release cursor)"));
-        }
-    }
+    MouseActivityEvent();
 }
 
 void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
@@ -536,11 +526,14 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
         return; // touch input is handled in TouchUpdateEvent
     }
 
+    if (confined) {
+        ConfineMouse();
+    }
     auto pos = event->pos();
     const auto [x, y] = ScaleTouch(pos);
     this->TouchMoved(x, y);
     InputCommon::GetMotionEmu()->Tilt(pos.x(), pos.y());
-    emit MouseActivity();
+    MouseActivityEvent();
 }
 
 void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
@@ -552,7 +545,7 @@ void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
         this->TouchReleased();
     else if (event->button() == Qt::RightButton)
         InputCommon::GetMotionEmu()->EndTilt();
-    emit MouseActivity();
+    MouseActivityEvent();
 }
 
 void GRenderWindow::TouchBeginEvent(const QTouchEvent* event) {
@@ -605,19 +598,25 @@ bool GRenderWindow::event(QEvent* event) {
 void GRenderWindow::focusOutEvent(QFocusEvent* event) {
     QWidget::focusOutEvent(event);
     InputCommon::GetKeyboard()->ReleaseAllKeys();
+    // UnconfineMouse();
     has_focus = false;
 }
 
 void GRenderWindow::focusInEvent(QFocusEvent* event) {
     QWidget::focusInEvent(event);
     has_focus = true;
-    UnconfineMouse();
-    confined = false;
+    // UnconfineMouse();
 }
 
 void GRenderWindow::resizeEvent(QResizeEvent* event) {
     QWidget::resizeEvent(event);
     OnFramebufferSizeChanged();
+}
+
+void GRenderWindow::MouseActivityEvent() {
+    if (!confined) {
+        emit MouseActivity();
+    }
 }
 
 bool GRenderWindow::InitRenderTarget() {
@@ -764,12 +763,6 @@ void GRenderWindow::OnEmulationStopping() {
 
 void GRenderWindow::showEvent(QShowEvent* event) {
     QWidget::showEvent(event);
-    original_window_title = GetMainWindow()->windowTitle();
-}
-
-void GRenderWindow::OnFramebufferLayoutChanged() {
-    if (confined)
-        ConfineMouse();
 }
 
 std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() const {
@@ -786,33 +779,23 @@ std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() 
     return std::make_unique<DummyContext>();
 }
 
-bool GRenderWindow::ConfineMouse() {
+void GRenderWindow::ConfineMouse() {
+    if (!GetMainWindow()->isFullScreen()) {
+        emit FullScreen();
+    }
     Layout::FramebufferLayout var = GetFramebufferLayout();
-    int left = child_widget->mapToGlobal(QPoint(var.bottom_screen.left, 0)).x();
-    int right = child_widget->mapToGlobal(QPoint(var.bottom_screen.right, 0)).x();
-    int bottom = child_widget->mapToGlobal(QPoint(0, var.bottom_screen.bottom)).y();
-    int top = child_widget->mapToGlobal(QPoint(0, var.bottom_screen.top)).y();
-#ifdef _WIN32
-    RECT rectangle;
-    rectangle.left = left;
-    rectangle.right = right;
-    rectangle.bottom = bottom;
-    rectangle.top = top;
-    if (ClipCursor(&rectangle)) {
-        confined = true;
-        return true;
-    } else
-        return false;
-#endif // _WIN32
+    auto posi = QCursor::pos();
+    qint32 x_limit =
+        qBound(child_widget->mapToGlobal(QPoint(var.bottom_screen.left, 0)).x(), posi.x(),
+               child_widget->mapToGlobal(QPoint(var.bottom_screen.right, 0)).x());
+    qint32 y_limit =
+        qBound(child_widget->mapToGlobal(QPoint(0, var.bottom_screen.top)).y(), posi.y(),
+               child_widget->mapToGlobal(QPoint(0, var.bottom_screen.bottom - 1)).y());
+    if (x_limit != posi.x() || y_limit != posi.y()) {
+        QCursor::setPos(x_limit, y_limit);
+    }
 }
 
 void GRenderWindow::UnconfineMouse() {
-#ifdef _WIN32
-    if (confined)
-        if (ClipCursor(NULL))
-            confined = false;
-        else
-            return;
-#endif // _WIN32
-    GetMainWindow()->setWindowTitle(original_window_title);
+    confined = false;
 }

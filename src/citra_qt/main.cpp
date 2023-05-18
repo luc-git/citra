@@ -735,6 +735,7 @@ void GMainWindow::ConnectWidgetEvents() {
             &GRenderWindow::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, secondary_window,
             &GRenderWindow::OnEmulationStopping);
+    connect(render_window, &GRenderWindow::FullScreen, this, &GMainWindow::ShowFullscreen);
 
     connect(&status_bar_update_timer, &QTimer::timeout, this, &GMainWindow::UpdateStatusBar);
 
@@ -743,8 +744,10 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(this, &GMainWindow::CIAInstallFinished, this, &GMainWindow::OnCIAInstallFinished);
     connect(this, &GMainWindow::UpdateThemedIcons, multiplayer_state,
             &MultiplayerState::UpdateThemedIcons);
-    connect(ui->action_Unconfine_Mouse, &QAction::triggered, render_window,
-            &GRenderWindow::UnconfineMouse);
+    connect(ui->action_Unconfine_Mouse, &QAction::triggered, this, [this] {
+        render_window->UnconfineMouse();
+        HideFullscreen();
+    });
 }
 
 void GMainWindow::ConnectMenuEvents() {
@@ -2299,7 +2302,9 @@ void GMainWindow::UpdateBootHomeMenuState() {
 }
 
 void GMainWindow::HideMouseCursor() {
-    if (emu_thread == nullptr || !UISettings::values.hide_mouse.GetValue()) {
+    if (emu_thread == nullptr ||
+        !UISettings::values.hide_mouse.GetValue() &&
+            !UISettings::values.confine_mouse_to_the_touchscreen.GetValue()) {
         mouse_hide_timer.stop();
         ShowMouseCursor();
         return;

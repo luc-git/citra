@@ -174,15 +174,16 @@ signals:
 
     /// Emitted on mouse activity. Used to signal that the mouse should be shown if it's hidden
     void MouseActivity();
+    void FullScreen();
 
 private:
     void TouchBeginEvent(const QTouchEvent* event);
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
-    bool ConfineMouse();
+    void ConfineMouse();
+    void MouseActivityEvent();
 
     void OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) override;
-    void OnFramebufferLayoutChanged() override;
 
     bool InitializeOpenGL();
     void InitializeSoftware();
@@ -203,7 +204,6 @@ private:
     bool first_frame = false;
     bool has_focus = false;
     bool confined = false;
-    QString original_window_title;
 
 protected:
     void showEvent(QShowEvent* event) override;
