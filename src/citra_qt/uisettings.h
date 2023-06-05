@@ -133,6 +133,9 @@ struct Values {
 
     // logging
     Settings::Setting<bool> show_console{false, "showConsole"};
+
+    // ConfineMouse
+    Settings::Setting<bool> confine_mouse_to_the_touchscreen{false, "ConfineMouse"};
 };
 
 extern Values values;

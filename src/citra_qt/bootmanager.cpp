@@ -12,6 +12,7 @@
 #include <QWindow>
 #include "citra_qt/bootmanager.h"
 #include "citra_qt/main.h"
+#include "citra_qt/uisettings.h"
 #include "common/color.h"
 #include "common/microprofile.h"
 #include "common/scm_rev.h"
@@ -47,17 +48,6 @@ static Frontend::WindowSystemType GetWindowSystemType();
 EmuThread::EmuThread(Frontend::GraphicsContext& core_context) : core_context(core_context) {}
 
 EmuThread::~EmuThread() = default;
-
-static GMainWindow* GetMainWindow() {
-    const auto widgets = qApp->topLevelWidgets();
-    for (QWidget* w : widgets) {
-        if (GMainWindow* main = qobject_cast<GMainWindow*>(w)) {
-            return main;
-        }
-    }
-
-    return nullptr;
-}
 
 void EmuThread::run() {
     MicroProfileOnThreadCreate("EmuThread");
@@ -386,6 +376,8 @@ GRenderWindow::GRenderWindow(QWidget* parent_, EmuThread* emu_thread_, Core::Sys
                              bool is_secondary_)
     : QWidget(parent_), EmuWindow(is_secondary_), emu_thread(emu_thread_), system{system_} {
 
+    window_frame = new QDialog(this);
+    window_frame->setWindowOpacity(0.004);
     setWindowTitle(QStringLiteral("Citra %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
                             QString::fromUtf8(Common::g_scm_branch),
@@ -398,8 +390,8 @@ GRenderWindow::GRenderWindow(QWidget* parent_, EmuThread* emu_thread_, Core::Sys
     this->setMouseTracking(true);
     strict_context_required = QGuiApplication::platformName() == QStringLiteral("wayland");
 
-    GMainWindow* parent = GetMainWindow();
-    connect(this, &GRenderWindow::FirstFrameDisplayed, parent, &GMainWindow::OnLoadComplete);
+    main_window = qobject_cast<GMainWindow*>(parent_);
+    connect(this, &GRenderWindow::FirstFrameDisplayed, main_window, &GMainWindow::OnLoadComplete);
 }
 
 GRenderWindow::~GRenderWindow() = default;
@@ -486,9 +478,25 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
         return; // touch input is handled in TouchBeginEvent
     }
 
+    if (UISettings::values.confine_mouse_to_the_touchscreen.GetValue() && !confined) {
+        foreground_window = window();
+        child_widget->grabMouse();
+        window_frame->showFullScreen();
+        foreground_window->move(main_window->pos());
+        foreground_window->setFixedSize(main_window->size());
+        foreground_window->setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+        foreground_window->show();
+        if (parentWidget() == nullptr) {
+            main_window->hide();
+        }
+        confined = true;
+    }
     auto pos = event->pos();
     if (event->button() == Qt::LeftButton) {
         const auto [x, y] = ScaleTouch(pos);
+        if (confined) {
+            ConfineMouse();
+        }
         this->TouchPressed(x, y);
     } else if (event->button() == Qt::RightButton) {
         InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
@@ -503,6 +511,9 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
 
     auto pos = event->pos();
     const auto [x, y] = ScaleTouch(pos);
+    if (confined) {
+        ConfineMouse();
+    }
     this->TouchMoved(x, y);
     InputCommon::GetMotionEmu()->Tilt(pos.x(), pos.y());
     emit MouseActivity();
@@ -725,6 +736,7 @@ void GRenderWindow::OnEmulationStarting(EmuThread* emu_thread) {
 
 void GRenderWindow::OnEmulationStopping() {
     emu_thread = nullptr;
+    child_widget->releaseMouse();
 }
 
 void GRenderWindow::showEvent(QShowEvent* event) {
@@ -743,4 +755,33 @@ std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() 
     }
 #endif
     return std::make_unique<DummyContext>();
+}
+
+void GRenderWindow::ConfineMouse() {
+    auto layout = GetFramebufferLayout();
+    auto posi = QCursor::pos();
+    qint32 x_limit =
+        qBound(child_widget->mapToGlobal(QPoint(layout.bottom_screen.left, 0)).x(), posi.x(),
+               child_widget->mapToGlobal(QPoint(layout.bottom_screen.right, 0)).x());
+    qint32 y_limit =
+        qBound(child_widget->mapToGlobal(QPoint(0, layout.bottom_screen.top)).y(), posi.y(),
+               child_widget->mapToGlobal(QPoint(0, layout.bottom_screen.bottom)).y());
+    if (x_limit != posi.x() || y_limit != posi.y()) {
+        QCursor::setPos(x_limit, y_limit);
+    }
+}
+
+void GRenderWindow::UnconfineMouse() {
+    if (!confined) {
+        return;
+    }
+    child_widget->releaseMouse();
+    confined = false;
+    window_frame->close();
+    foreground_window->setWindowFlags(Qt::Window);
+    foreground_window->setFixedSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX));
+    foreground_window->show();
+    if (parentWidget() == nullptr) {
+        main_window->show();
+    }
 }

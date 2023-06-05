@@ -601,6 +601,14 @@
     <enum>QAction::NoRole</enum>
    </property>
   </action>
+  <action name="action_Unconfine_Mouse">
+   <property name="text">
+    <string>Unconfine Mouse</string>
+   </property>
+   <property name="toolTip">
+    <string>Unconfine the mouse cursor</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

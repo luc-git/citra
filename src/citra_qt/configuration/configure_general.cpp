@@ -75,6 +75,8 @@ void ConfigureGeneral::SetConfiguration() {
         ui->toggle_update_check->setChecked(
             UISettings::values.check_for_update_on_start.GetValue());
         ui->toggle_auto_update->setChecked(UISettings::values.update_on_close.GetValue());
+        ui->toggle_confine_mouse_touchscreen->setChecked(
+            UISettings::values.confine_mouse_to_the_touchscreen.GetValue());
     }
 
     if (Settings::values.frame_limit.GetValue() == 0) {
@@ -171,6 +173,8 @@ void ConfigureGeneral::ApplyConfiguration() {
 
         UISettings::values.check_for_update_on_start = ui->toggle_update_check->isChecked();
         UISettings::values.update_on_close = ui->toggle_auto_update->isChecked();
+        UISettings::values.confine_mouse_to_the_touchscreen =
+            ui->toggle_confine_mouse_touchscreen->isChecked();
     }
 }
 

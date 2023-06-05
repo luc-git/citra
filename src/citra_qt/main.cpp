@@ -525,6 +525,7 @@ void GMainWindow::InitializeHotkeys() {
 
     const QString main_window = QStringLiteral("Main Window");
     const QString fullscreen = QStringLiteral("Fullscreen");
+    const QString unconfine_mouse = QStringLiteral("Unconfine Mouse Cursor");
     const QString toggle_screen_layout = QStringLiteral("Toggle Screen Layout");
     const QString swap_screens = QStringLiteral("Swap Screens");
     const QString rotate_screens = QStringLiteral("Rotate Screens Upright");
@@ -655,6 +656,8 @@ void GMainWindow::InitializeHotkeys() {
             UpdateStatusBar();
         }
     });
+    connect(hotkey_registry.GetHotkey(main_window, unconfine_mouse, render_window),
+            &QShortcut::activated, ui->action_Unconfine_Mouse, &QAction::trigger);
 }
 
 void GMainWindow::SetDefaultUIGeometry() {
@@ -749,6 +752,8 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(this, &GMainWindow::CIAInstallFinished, this, &GMainWindow::OnCIAInstallFinished);
     connect(this, &GMainWindow::UpdateThemedIcons, multiplayer_state,
             &MultiplayerState::UpdateThemedIcons);
+    connect(ui->action_Unconfine_Mouse, &QAction::triggered, render_window,
+            &GRenderWindow::UnconfineMouse);
 }
 
 void GMainWindow::ConnectMenuEvents() {
