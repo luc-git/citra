@@ -54,7 +54,10 @@ public:
     /// Queues the provided frame for presentation.
     void Present(Frame* frame);
 
-    vk::RenderPass Renderpass() const noexcept {
+    /// This is called to notify the rendering backend of a surface change
+    void NotifySurfaceChanged();
+
+    [[nodiscard]] vk::RenderPass Renderpass() const noexcept {
         return present_renderpass;
     }
 
@@ -78,8 +81,10 @@ private:
     std::queue<Frame*> free_queue;
     std::queue<Frame*> present_queue;
     std::condition_variable free_cv;
+    std::condition_variable recreate_surface_cv;
     std::condition_variable_any frame_cv;
     std::mutex swapchain_mutex;
+    std::mutex recreate_surface_mutex;
     std::mutex queue_mutex;
     std::mutex free_mutex;
     std::jthread present_thread;

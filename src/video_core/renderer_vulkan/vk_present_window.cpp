@@ -322,18 +322,31 @@ void PresentWindow::PresentThread(std::stop_token token) {
     }
 }
 
+void PresentWindow::NotifySurfaceChanged() {
+#ifdef ANDROID
+    std::scoped_lock lock{recreate_surface_mutex};
+    recreate_surface_cv.notify_one();
+#endif
+}
+
 void PresentWindow::CopyToSwapchain(Frame* frame) {
     const auto recreate_swapchain = [&] { swapchain.Create(frame->width, frame->height, surface); };
 
 #ifdef ANDROID
+    std::unique_lock lock{recreate_surface_mutex};
+
+    recreate_surface_cv.wait_for(lock, std::chrono::milliseconds(400), [&]() {
+        return last_render_surface == emu_window.GetWindowInfo().render_surface;
+    });
+
+    // If the frontend recreated the surface, recreate the renderer surface and swapchain.
     void* const render_surface = emu_window.GetWindowInfo().render_surface;
     if (last_render_surface != render_surface) {
         last_render_surface = render_surface;
         surface = CreateSurface(instance.GetInstance(), emu_window);
         recreate_swapchain();
     }
-#endif
-
+#else
     const bool use_vsync = Settings::values.use_vsync_new.GetValue();
     const bool size_changed =
         swapchain.GetWidth() != frame->width || swapchain.GetHeight() != frame->height;
@@ -342,6 +355,7 @@ void PresentWindow::CopyToSwapchain(Frame* frame) {
         vsync_enabled = use_vsync;
         recreate_swapchain();
     }
+#endif
 
     while (!swapchain.AcquireNextImage()) {
         recreate_swapchain();
@@ -447,7 +461,7 @@ void PresentWindow::CopyToSwapchain(Frame* frame) {
         .pSignalSemaphores = &present_ready,
     };
 
-    std::scoped_lock lock{scheduler.queue_mutex};
+    std::scoped_lock submit_lock{scheduler.queue_mutex};
 
     try {
         graphics_queue.submit(submit_info, frame->present_done);
