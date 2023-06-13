@@ -235,21 +235,6 @@ public:
     /// Binds a fragment shader generated from PICA state
     void UseFragmentShader(const Pica::Regs& regs);
 
-    /// Binds a texture to the specified binding
-    void BindTexture(u32 binding, vk::ImageView image_view, vk::Sampler sampler);
-
-    /// Binds a storage image to the specified binding
-    void BindStorageImage(u32 binding, vk::ImageView image_view);
-
-    /// Binds a buffer to the specified binding
-    void BindBuffer(u32 binding, vk::Buffer buffer, u32 offset, u32 size);
-
-    /// Binds a buffer to the specified binding
-    void BindTexelBuffer(u32 binding, vk::BufferView buffer_view);
-
-    /// Sets the dynamic offset for the uniform buffer at binding
-    void SetBufferOffset(u32 binding, u32 offset);
-
 private:
     /// Applies dynamic pipeline state to the current command buffer
     void ApplyDynamic(const PipelineInfo& info, bool is_dirty);

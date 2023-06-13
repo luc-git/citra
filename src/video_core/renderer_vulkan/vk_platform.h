@@ -4,26 +4,34 @@
 
 #pragma once
 
+#include <memory>
+#include <variant>
 #include <vector>
+
 #include "common/common_types.h"
+#include "common/dynamic_library.h"
 #include "video_core/renderer_vulkan/vk_common.h"
 
 namespace Frontend {
 class EmuWindow;
 enum class WindowSystemType : u8;
+class GraphicsContext;
 } // namespace Frontend
 
 namespace Vulkan {
 
-vk::DynamicLoader& GetVulkanLoader();
+using DebugCallback =
+    std::variant<vk::UniqueDebugUtilsMessengerEXT, vk::UniqueDebugReportCallbackEXT>;
 
-std::vector<const char*> GetInstanceExtensions(Frontend::WindowSystemType window_type,
-                                               bool enable_debug_utils);
-
-vk::InstanceCreateFlags GetInstanceFlags();
-
-void LoadInstanceFunctions(vk::Instance instance);
+std::shared_ptr<Common::DynamicLibrary> OpenLibrary(
+    [[maybe_unused]] Frontend::GraphicsContext* context = nullptr);
 
 vk::SurfaceKHR CreateSurface(vk::Instance instance, const Frontend::EmuWindow& emu_window);
+
+vk::UniqueInstance CreateInstance(const Common::DynamicLibrary& library,
+                                  Frontend::WindowSystemType window_type, bool enable_validation,
+                                  bool dump_command_buffers);
+
+DebugCallback CreateDebugCallback(vk::Instance instance);
 
 } // namespace Vulkan

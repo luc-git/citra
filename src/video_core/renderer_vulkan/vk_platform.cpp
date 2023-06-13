@@ -15,29 +15,107 @@
 #endif
 
 #define VULKAN_HPP_NO_CONSTRUCTORS
+#include <memory>
+#include <boost/container/static_vector.hpp>
+
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/frontend/emu_window.h"
 #include "video_core/renderer_vulkan/vk_platform.h"
 
 namespace Vulkan {
 
-vk::DynamicLoader& GetVulkanLoader() {
+namespace {
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
+    const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* user_data) {
+
+    switch (callback_data->messageIdNumber) {
+    case 0x609a13b: // Vertex attribute at location not consumed by shader
+        return VK_FALSE;
+    default:
+        break;
+    }
+
+    Log::Level level{};
+    switch (severity) {
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+        level = Log::Level::Error;
+        break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+        level = Log::Level::Info;
+        break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+        level = Log::Level::Debug;
+        break;
+    default:
+        level = Log::Level::Info;
+    }
+
+    LOG_GENERIC(Log::Class::Render_Vulkan, level, "{}: {}",
+                callback_data->pMessageIdName ? callback_data->pMessageIdName : "<null>",
+                callback_data->pMessage ? callback_data->pMessage : "<null>");
+
+    return VK_FALSE;
+}
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT flags,
+                                                          VkDebugReportObjectTypeEXT objectType,
+                                                          uint64_t object, size_t location,
+                                                          int32_t messageCode,
+                                                          const char* pLayerPrefix,
+                                                          const char* pMessage, void* pUserData) {
+
+    const VkDebugReportFlagBitsEXT severity = static_cast<VkDebugReportFlagBitsEXT>(flags);
+    Log::Level level{};
+    switch (severity) {
+    case VK_DEBUG_REPORT_ERROR_BIT_EXT:
+        level = Log::Level::Error;
+        break;
+    case VK_DEBUG_REPORT_INFORMATION_BIT_EXT:
+        level = Log::Level::Warning;
+        break;
+    case VK_DEBUG_REPORT_DEBUG_BIT_EXT:
+    case VK_DEBUG_REPORT_WARNING_BIT_EXT:
+    case VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT:
+        level = Log::Level::Debug;
+        break;
+    default:
+        level = Log::Level::Info;
+    }
+
+    const vk::DebugReportObjectTypeEXT type = static_cast<vk::DebugReportObjectTypeEXT>(objectType);
+    LOG_GENERIC(Log::Class::Render_Vulkan, level,
+                "type = {}, object = {} | MessageCode = {:#x}, LayerPrefix = {} | {}",
+                vk::to_string(type), object, messageCode, pLayerPrefix, pMessage);
+
+    return VK_FALSE;
+}
+} // Anonymous namespace
+
+std::shared_ptr<Common::DynamicLibrary> OpenLibrary(
+    [[maybe_unused]] Frontend::GraphicsContext* context) {
+    auto library = std::make_shared<Common::DynamicLibrary>();
 #ifdef __APPLE__
-    try {
-        // Attempt to load system Vulkan first, since it may support more capabilities like
-        // validation layers.
-        static vk::DynamicLoader dl;
-        return dl;
-    } catch (std::runtime_error&) {
+    const std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan");
+    library->Open(filename.c_str());
+    if (!library->IsOpen()) {
         // Fall back to directly loading bundled MoltenVK library.
-        static vk::DynamicLoader dl("libMoltenVK.dylib");
-        return dl;
+        library->Open("libMoltenVK.dylib");
     }
 #else
-    static vk::DynamicLoader dl;
-    return dl;
+    std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);
+    LOG_DEBUG(Render_Vulkan, "Trying Vulkan library: {}", filename);
+    if (!library->Open(filename.c_str())) {
+        // Android devices may not have libvulkan.so.1, only libvulkan.so.
+        filename = Common::DynamicLibrary::GetVersionedFilename("vulkan");
+        LOG_DEBUG(Render_Vulkan, "Trying Vulkan library (second attempt): {}", filename);
+        void(library->Open(filename.c_str()));
+    }
 #endif
+    return library;
 }
 
 vk::SurfaceKHR CreateSurface(vk::Instance instance, const Frontend::EmuWindow& emu_window) {
@@ -47,7 +125,9 @@ vk::SurfaceKHR CreateSurface(vk::Instance instance, const Frontend::EmuWindow& e
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
     if (window_info.type == Frontend::WindowSystemType::Windows) {
         const vk::Win32SurfaceCreateInfoKHR win32_ci = {
-            .hinstance = nullptr, .hwnd = static_cast<HWND>(window_info.render_surface)};
+            .hinstance = nullptr,
+            .hwnd = static_cast<HWND>(window_info.render_surface),
+        };
 
         if (instance.createWin32SurfaceKHR(&win32_ci, nullptr, &surface) != vk::Result::eSuccess) {
             LOG_CRITICAL(Render_Vulkan, "Failed to initialize Win32 surface");
@@ -58,7 +138,8 @@ vk::SurfaceKHR CreateSurface(vk::Instance instance, const Frontend::EmuWindow& e
     if (window_info.type == Frontend::WindowSystemType::X11) {
         const vk::XlibSurfaceCreateInfoKHR xlib_ci = {
             .dpy = static_cast<Display*>(window_info.display_connection),
-            .window = reinterpret_cast<Window>(window_info.render_surface)};
+            .window = reinterpret_cast<Window>(window_info.render_surface),
+        };
 
         if (instance.createXlibSurfaceKHR(&xlib_ci, nullptr, &surface) != vk::Result::eSuccess) {
             LOG_ERROR(Render_Vulkan, "Failed to initialize Xlib surface");
@@ -67,7 +148,8 @@ vk::SurfaceKHR CreateSurface(vk::Instance instance, const Frontend::EmuWindow& e
     } else if (window_info.type == Frontend::WindowSystemType::Wayland) {
         const vk::WaylandSurfaceCreateInfoKHR wayland_ci = {
             .display = static_cast<wl_display*>(window_info.display_connection),
-            .surface = static_cast<wl_surface*>(window_info.render_surface)};
+            .surface = static_cast<wl_surface*>(window_info.render_surface),
+        };
 
         if (instance.createWaylandSurfaceKHR(&wayland_ci, nullptr, &surface) !=
             vk::Result::eSuccess) {
@@ -78,7 +160,8 @@ vk::SurfaceKHR CreateSurface(vk::Instance instance, const Frontend::EmuWindow& e
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
     if (window_info.type == Frontend::WindowSystemType::MacOS) {
         const vk::MetalSurfaceCreateInfoEXT macos_ci = {
-            .pLayer = static_cast<const CAMetalLayer*>(window_info.render_surface)};
+            .pLayer = static_cast<const CAMetalLayer*>(window_info.render_surface),
+        };
 
         if (instance.createMetalSurfaceEXT(&macos_ci, nullptr, &surface) != vk::Result::eSuccess) {
             LOG_CRITICAL(Render_Vulkan, "Failed to initialize MacOS surface");
@@ -88,7 +171,8 @@ vk::SurfaceKHR CreateSurface(vk::Instance instance, const Frontend::EmuWindow& e
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
     if (window_info.type == Frontend::WindowSystemType::Android) {
         vk::AndroidSurfaceCreateInfoKHR android_ci = {
-            .window = reinterpret_cast<ANativeWindow*>(window_info.render_surface)};
+            .window = reinterpret_cast<ANativeWindow*>(window_info.render_surface),
+        };
 
         if (instance.createAndroidSurfaceKHR(&android_ci, nullptr, &surface) !=
             vk::Result::eSuccess) {
@@ -111,7 +195,7 @@ std::vector<const char*> GetInstanceExtensions(Frontend::WindowSystemType window
     const auto properties = vk::enumerateInstanceExtensionProperties();
     if (properties.empty()) {
         LOG_ERROR(Render_Vulkan, "Failed to query extension properties");
-        return std::vector<const char*>{};
+        return {};
     }
 
     // Add the windowing system specific extension
@@ -176,17 +260,104 @@ std::vector<const char*> GetInstanceExtensions(Frontend::WindowSystemType window
     return extensions;
 }
 
-void LoadInstanceFunctions(vk::Instance instance) {
-    // Perform instance function loading here, to also load window system functions
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(instance);
-}
-
 vk::InstanceCreateFlags GetInstanceFlags() {
 #if defined(__APPLE__)
     return vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
 #else
     return static_cast<vk::InstanceCreateFlags>(0);
 #endif
+}
+
+vk::UniqueInstance CreateInstance(const Common::DynamicLibrary& library,
+                                  Frontend::WindowSystemType window_type, bool enable_validation,
+                                  bool dump_command_buffers) {
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
+    if (!library.GetSymbol("vkGetInstanceProcAddr", &vkGetInstanceProcAddr)) {
+        LOG_CRITICAL(Render_Vulkan, "Failed GetSymbol vkGetInstanceProcAddr");
+        return {};
+    }
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+
+    const auto extensions = GetInstanceExtensions(window_type, enable_validation);
+    const u32 available_version = vk::enumerateInstanceVersion();
+    if (available_version < VK_API_VERSION_1_1) {
+        LOG_CRITICAL(Render_Vulkan, "Vulkan 1.0 is not supported, 1.1 is required!");
+        return {};
+    }
+
+    const vk::ApplicationInfo application_info = {
+        .pApplicationName = "Citra",
+        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+        .pEngineName = "Citra Vulkan",
+        .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+        .apiVersion = available_version,
+    };
+
+    boost::container::static_vector<const char*, 2> layers;
+    if (enable_validation) {
+        layers.push_back("VK_LAYER_KHRONOS_validation");
+    }
+    if (dump_command_buffers) {
+        layers.push_back("VK_LAYER_LUNARG_api_dump");
+    }
+
+    const vk::InstanceCreateInfo instance_ci = {
+        .flags = GetInstanceFlags(),
+        .pApplicationInfo = &application_info,
+        .enabledLayerCount = static_cast<u32>(layers.size()),
+        .ppEnabledLayerNames = layers.data(),
+        .enabledExtensionCount = static_cast<u32>(extensions.size()),
+        .ppEnabledExtensionNames = extensions.data(),
+    };
+
+    auto instance = vk::createInstanceUnique(instance_ci);
+
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
+
+    return instance;
+}
+
+vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance) {
+    return instance.createDebugUtilsMessengerEXTUnique({
+        .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
+                           vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+                           vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+                           vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose,
+        .messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+                       vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+                       vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding |
+                       vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
+        .pfnUserCallback = DebugUtilsCallback,
+    });
+}
+
+vk::UniqueDebugReportCallbackEXT CreateDebugReportCallback(vk::Instance instance) {
+    return instance.createDebugReportCallbackEXTUnique({
+        .flags = vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::eInformation |
+                 vk::DebugReportFlagBitsEXT::eError |
+                 vk::DebugReportFlagBitsEXT::ePerformanceWarning |
+                 vk::DebugReportFlagBitsEXT::eWarning,
+        .pfnCallback = DebugReportCallback,
+    });
+}
+
+DebugCallback CreateDebugCallback(vk::Instance instance) {
+    if (!Settings::values.renderer_debug) {
+        return {};
+    }
+    const auto properties = vk::enumerateInstanceExtensionProperties();
+    if (properties.empty()) {
+        LOG_ERROR(Render_Vulkan, "Failed to query extension properties");
+        return {};
+    }
+    const auto it = std::find_if(properties.begin(), properties.end(), [](const auto& prop) {
+        return std::strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, prop.extensionName) == 0;
+    });
+    if (it != properties.end()) {
+        return CreateDebugMessenger(instance);
+    } else {
+        return CreateDebugReportCallback(instance);
+    }
 }
 
 } // namespace Vulkan

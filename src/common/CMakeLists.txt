@@ -65,6 +65,8 @@ add_library(citra_common STATIC
     common_precompiled_headers.h
     common_types.h
     construct.h
+    dynamic_library.cpp
+    dynamic_library.h
     error.cpp
     error.h
     file_util.cpp

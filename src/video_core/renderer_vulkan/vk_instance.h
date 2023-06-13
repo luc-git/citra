@@ -5,10 +5,10 @@
 #pragma once
 
 #include <span>
-#include <vector>
+
 #include "video_core/rasterizer_cache/pixel_format.h"
 #include "video_core/regs_pipeline.h"
-#include "video_core/renderer_vulkan/vk_common.h"
+#include "video_core/renderer_vulkan/vk_platform.h"
 
 namespace Frontend {
 class EmuWindow;
@@ -23,16 +23,15 @@ VK_DEFINE_HANDLE(VmaAllocator)
 namespace Vulkan {
 
 struct FormatTraits {
-    bool transfer_support = false;   ///< True if the format supports transfer operations
-    bool blit_support = false;       ///< True if the format supports blit operations
-    bool attachment_support = false; ///< True if the format supports being used as an attachment
-    bool storage_support = false;    ///< True if the format supports storage operations
-    bool requires_conversion =
-        false; ///< True if the format requires conversion to the native format
-    bool requires_emulation = false;            ///< True if the format requires emulation
-    vk::ImageUsageFlags usage{};                ///< Most supported usage for the native format
-    vk::ImageAspectFlags aspect;                ///< Aspect flags of the format
-    vk::Format native = vk::Format::eUndefined; ///< Closest possible native format
+    bool transfer_support = false;
+    bool blit_support = false;
+    bool attachment_support = false;
+    bool storage_support = false;
+    bool needs_conversion = false;
+    bool needs_emulation = false;
+    vk::ImageUsageFlags usage{};
+    vk::ImageAspectFlags aspect;
+    vk::Format native = vk::Format::eUndefined;
 };
 
 class Instance {
@@ -51,7 +50,7 @@ public:
 
     /// Returns the Vulkan instance
     vk::Instance GetInstance() const {
-        return instance;
+        return *instance;
     }
 
     /// Returns the current physical device
@@ -61,7 +60,7 @@ public:
 
     /// Returns the Vulkan device
     vk::Device GetDevice() const {
-        return device;
+        return *device;
     }
 
     /// Returns the VMA allocator handle
@@ -213,12 +212,12 @@ public:
 
     /// Returns the minimum required alignment for uniforms
     vk::DeviceSize UniformMinAlignment() const {
-        return limits.minUniformBufferOffsetAlignment;
+        return properties.limits.minUniformBufferOffsetAlignment;
     }
 
     /// Returns the maximum supported elements in a texel buffer
     u32 MaxTexelBufferElements() const {
-        return limits.maxTexelBufferElements;
+        return properties.limits.maxTexelBufferElements;
     }
 
     /// Returns true if shaders can declare the ClipDistance attribute
@@ -267,20 +266,20 @@ private:
     void CollectTelemetryParameters();
 
 private:
-    vk::Device device;
+    std::shared_ptr<Common::DynamicLibrary> library;
+    vk::UniqueInstance instance;
     vk::PhysicalDevice physical_device;
-    vk::Instance instance;
+    vk::UniqueDevice device;
     vk::PhysicalDeviceProperties properties;
     vk::PhysicalDeviceFeatures features;
-    vk::PhysicalDeviceLimits limits;
     vk::DriverIdKHR driver_id;
-    vk::DebugUtilsMessengerEXT debug_messenger;
-    vk::DebugReportCallbackEXT callback;
+    DebugCallback debug_callback;
     std::string vendor_name;
-    VmaAllocator allocator;
+    VmaAllocator allocator{};
     vk::Queue present_queue;
     vk::Queue graphics_queue;
     std::vector<vk::PhysicalDevice> physical_devices;
+    FormatTraits null_traits;
     std::array<FormatTraits, VideoCore::PIXEL_FORMAT_COUNT> format_table;
     std::array<FormatTraits, 10> custom_format_table;
     std::array<FormatTraits, 16> attrib_table;
@@ -299,8 +298,6 @@ private:
     bool pipeline_creation_cache_control{};
     bool pipeline_creation_feedback{};
     bool shader_stencil_export{};
-    bool enable_validation{};
-    bool dump_command_buffers{};
     bool debug_messenger_supported{};
     bool debug_report_supported{};
 };

@@ -165,7 +165,7 @@ bool PipelineCache::GraphicsPipeline::Build(bool fail_on_compile_required) {
 
         // At the end there's always the fixed binding which takes up
         // at least 16 bytes so we should always be able to alias.
-        if (traits.requires_emulation) {
+        if (traits.needs_emulation) {
             const FormatTraits& comp_four_traits = instance.GetTraits(attr.type, 4);
             attributes[i].format = comp_four_traits.native;
         }
@@ -504,10 +504,10 @@ bool PipelineCache::UseProgrammableVertexShader(const Pica::Regs& regs,
         const u32 location = attr.location.Value();
         AttribLoadFlags& flags = config.state.load_flags[location];
 
-        if (traits.requires_conversion) {
+        if (traits.needs_conversion) {
             flags = MakeAttribLoadFlag(attr.type);
         }
-        if (traits.requires_emulation) {
+        if (traits.needs_emulation) {
             flags |= AttribLoadFlags::ZeroW;
         }
     }
@@ -612,46 +612,6 @@ void PipelineCache::UseFragmentShader(const Pica::Regs& regs) {
 
     current_shaders[ProgramType::FS] = &shader;
     shader_hashes[ProgramType::FS] = config.Hash();
-}
-
-void PipelineCache::BindTexture(u32 binding, vk::ImageView image_view, vk::Sampler sampler) {
-    const vk::DescriptorImageInfo image_info = {
-        .sampler = sampler,
-        .imageView = image_view,
-        .imageLayout = vk::ImageLayout::eGeneral,
-    };
-    desc_manager.SetBinding(1, binding, DescriptorData{image_info});
-}
-
-void PipelineCache::BindStorageImage(u32 binding, vk::ImageView image_view) {
-    const vk::DescriptorImageInfo image_info = {
-        .imageView = image_view,
-        .imageLayout = vk::ImageLayout::eGeneral,
-    };
-    desc_manager.SetBinding(2, binding, DescriptorData{image_info});
-}
-
-void PipelineCache::BindBuffer(u32 binding, vk::Buffer buffer, u32 offset, u32 size) {
-    const DescriptorData data = {
-        .buffer_info =
-            vk::DescriptorBufferInfo{
-                .buffer = buffer,
-                .offset = offset,
-                .range = size,
-            },
-    };
-    desc_manager.SetBinding(0, binding, data);
-}
-
-void PipelineCache::BindTexelBuffer(u32 binding, vk::BufferView buffer_view) {
-    const DescriptorData data = {
-        .buffer_view = buffer_view,
-    };
-    desc_manager.SetBinding(0, binding, data);
-}
-
-void PipelineCache::SetBufferOffset(u32 binding, u32 offset) {
-    desc_manager.SetDynamicOffset(binding, offset);
 }
 
 void PipelineCache::ApplyDynamic(const PipelineInfo& info, bool is_dirty) {

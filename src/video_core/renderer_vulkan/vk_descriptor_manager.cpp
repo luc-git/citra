@@ -97,6 +97,42 @@ DescriptorManager::~DescriptorManager() {
     }
 }
 
+void DescriptorManager::BindTexture(u32 binding, vk::ImageView image_view, vk::Sampler sampler) {
+    const vk::DescriptorImageInfo image_info = {
+        .sampler = sampler,
+        .imageView = image_view,
+        .imageLayout = vk::ImageLayout::eGeneral,
+    };
+    SetBinding(1, binding, DescriptorData{image_info});
+}
+
+void DescriptorManager::BindStorageImage(u32 binding, vk::ImageView image_view) {
+    const vk::DescriptorImageInfo image_info = {
+        .imageView = image_view,
+        .imageLayout = vk::ImageLayout::eGeneral,
+    };
+    SetBinding(2, binding, DescriptorData{image_info});
+}
+
+void DescriptorManager::BindBuffer(u32 binding, vk::Buffer buffer, u32 offset, u32 size) {
+    const DescriptorData data = {
+        .buffer_info =
+            vk::DescriptorBufferInfo{
+                .buffer = buffer,
+                .offset = offset,
+                .range = size,
+            },
+    };
+    SetBinding(0, binding, data);
+}
+
+void DescriptorManager::BindTexelBuffer(u32 binding, vk::BufferView buffer_view) {
+    const DescriptorData data = {
+        .buffer_view = buffer_view,
+    };
+    SetBinding(0, binding, data);
+}
+
 void DescriptorManager::SetBinding(u32 set, u32 binding, DescriptorData data) {
     DescriptorData& current = update_data[set][binding];
     if (current != data) {

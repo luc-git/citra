@@ -813,7 +813,7 @@ void TextureRuntime::GenerateMipmaps(Surface& surface) {
 
 bool TextureRuntime::NeedsConversion(VideoCore::PixelFormat format) const {
     const FormatTraits traits = instance.GetTraits(format);
-    return traits.requires_conversion &&
+    return traits.needs_conversion &&
            // DepthStencil formats are handled elsewhere due to de-interleaving.
            traits.aspect != (vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil);
 }

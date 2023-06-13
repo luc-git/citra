@@ -107,20 +107,20 @@ RasterizerVulkan::RasterizerVulkan(Memory::MemorySystem& memory,
 
     // Since we don't have access to VK_EXT_descriptor_indexing we need to intiallize
     // all descriptor sets even the ones we don't use.
-    pipeline_cache.BindBuffer(0, uniform_buffer.Handle(), 0, sizeof(Pica::Shader::VSUniformData));
-    pipeline_cache.BindBuffer(1, uniform_buffer.Handle(), 0, sizeof(Pica::Shader::UniformData));
-    pipeline_cache.BindTexelBuffer(2, texture_lf_view);
-    pipeline_cache.BindTexelBuffer(3, texture_rg_view);
-    pipeline_cache.BindTexelBuffer(4, texture_rgba_view);
+    desc_manager.BindBuffer(0, uniform_buffer.Handle(), 0, sizeof(Pica::Shader::VSUniformData));
+    desc_manager.BindBuffer(1, uniform_buffer.Handle(), 0, sizeof(Pica::Shader::UniformData));
+    desc_manager.BindTexelBuffer(2, texture_lf_view);
+    desc_manager.BindTexelBuffer(3, texture_rg_view);
+    desc_manager.BindTexelBuffer(4, texture_rgba_view);
 
     Surface& null_surface = res_cache.GetSurface(VideoCore::NULL_SURFACE_ID);
     Sampler& null_sampler = res_cache.GetSampler(VideoCore::NULL_SAMPLER_ID);
     for (u32 i = 0; i < 4; i++) {
-        pipeline_cache.BindTexture(i, null_surface.ImageView(), null_sampler.Handle());
+        desc_manager.BindTexture(i, null_surface.ImageView(), null_sampler.Handle());
     }
 
     for (u32 i = 0; i < 7; i++) {
-        pipeline_cache.BindStorageImage(i, null_surface.StorageView());
+        desc_manager.BindStorageImage(i, null_surface.StorageView());
     }
 
     SyncEntireState();
@@ -471,7 +471,7 @@ bool RasterizerVulkan::Draw(bool accelerate, bool is_indexed) {
     pipeline_info.attachments.color_format = framebuffer.Format(SurfaceType::Color);
     pipeline_info.attachments.depth_format = framebuffer.Format(SurfaceType::DepthStencil);
     if (shadow_rendering) {
-        pipeline_cache.BindStorageImage(6, framebuffer.ShadowBuffer());
+        desc_manager.BindStorageImage(6, framebuffer.ShadowBuffer());
     }
 
     const int res_scale = static_cast<int>(framebuffer.ResolutionScale());
@@ -563,8 +563,8 @@ void RasterizerVulkan::SyncTextureUnits(const Framebuffer& framebuffer) {
         if (!texture.enabled) {
             const Surface& null_surface = res_cache.GetSurface(VideoCore::NULL_SURFACE_ID);
             const Sampler& null_sampler = res_cache.GetSampler(VideoCore::NULL_SAMPLER_ID);
-            pipeline_cache.BindTexture(texture_index, null_surface.ImageView(),
-                                       null_sampler.Handle());
+            desc_manager.BindTexture(texture_index, null_surface.ImageView(),
+                                     null_sampler.Handle());
             continue;
         }
 
@@ -573,7 +573,7 @@ void RasterizerVulkan::SyncTextureUnits(const Framebuffer& framebuffer) {
             switch (texture.config.type.Value()) {
             case TextureType::Shadow2D: {
                 Surface& surface = res_cache.GetTextureSurface(texture);
-                pipeline_cache.BindStorageImage(0, surface.StorageView());
+                desc_manager.BindStorageImage(0, surface.StorageView());
                 continue;
             }
             case TextureType::ShadowCube: {
@@ -594,7 +594,7 @@ void RasterizerVulkan::SyncTextureUnits(const Framebuffer& framebuffer) {
         Surface& surface = res_cache.GetTextureSurface(texture);
         Sampler& sampler = res_cache.GetSampler(texture.config);
         if (!IsFeedbackLoop(texture_index, framebuffer, surface, sampler)) {
-            pipeline_cache.BindTexture(texture_index, surface.ImageView(), sampler.Handle());
+            desc_manager.BindTexture(texture_index, surface.ImageView(), sampler.Handle());
         }
     }
 }
@@ -613,7 +613,7 @@ void RasterizerVulkan::BindShadowCube(const Pica::TexturingRegs::FullTextureConf
 
         const VideoCore::SurfaceId surface_id = res_cache.GetTextureSurface(info);
         Surface& surface = res_cache.GetSurface(surface_id);
-        pipeline_cache.BindStorageImage(binding, surface.StorageView());
+        desc_manager.BindStorageImage(binding, surface.StorageView());
     }
 }
 
@@ -633,7 +633,7 @@ void RasterizerVulkan::BindTextureCube(const Pica::TexturingRegs::FullTextureCon
 
     Surface& surface = res_cache.GetTextureCube(config);
     Sampler& sampler = res_cache.GetSampler(texture.config);
-    pipeline_cache.BindTexture(3, surface.ImageView(), sampler.Handle());
+    desc_manager.BindTexture(3, surface.ImageView(), sampler.Handle());
 }
 
 bool RasterizerVulkan::IsFeedbackLoop(u32 texture_index, const Framebuffer& framebuffer,
@@ -656,14 +656,14 @@ bool RasterizerVulkan::IsFeedbackLoop(u32 texture_index, const Framebuffer& fram
         .extent = {temp_surface.GetScaledWidth(), temp_surface.GetScaledHeight()},
     };
     runtime.CopyTextures(surface, temp_surface, copy);
-    pipeline_cache.BindTexture(texture_index, temp_surface.ImageView(), sampler.Handle());
+    desc_manager.BindTexture(texture_index, temp_surface.ImageView(), sampler.Handle());
     return true;
 }
 
 void RasterizerVulkan::UnbindSpecial() {
     Surface& null_surface = res_cache.GetSurface(VideoCore::NULL_SURFACE_ID);
     for (u32 i = 0; i < 6; i++) {
-        pipeline_cache.BindStorageImage(i, null_surface.ImageView());
+        desc_manager.BindStorageImage(i, null_surface.ImageView());
     }
 }
 
@@ -1125,7 +1125,7 @@ void RasterizerVulkan::UploadUniforms(bool accelerate_draw) {
         vs_uniforms.uniforms.SetFromRegs(regs.vs, Pica::g_state.vs);
         std::memcpy(uniforms, &vs_uniforms, sizeof(vs_uniforms));
 
-        pipeline_cache.SetBufferOffset(0, offset);
+        desc_manager.SetBufferOffset(0, offset);
         used_bytes += static_cast<u32>(uniform_size_aligned_vs);
     }
 
@@ -1133,7 +1133,7 @@ void RasterizerVulkan::UploadUniforms(bool accelerate_draw) {
         std::memcpy(uniforms + used_bytes, &uniform_block_data.data,
                     sizeof(Pica::Shader::UniformData));
 
-        pipeline_cache.SetBufferOffset(1, offset + used_bytes);
+        desc_manager.SetBufferOffset(1, offset + used_bytes);
         uniform_block_data.dirty = false;
         used_bytes += static_cast<u32>(uniform_size_aligned_fs);
     }

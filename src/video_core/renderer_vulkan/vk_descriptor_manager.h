@@ -38,8 +38,17 @@ public:
     explicit DescriptorManager(const Instance& instance, Scheduler& scheduler);
     ~DescriptorManager();
 
-    /// Allocates an array of descriptor sets of the provided layout
-    std::vector<vk::DescriptorSet> AllocateSets(vk::DescriptorSetLayout layout, u32 num_sets);
+    /// Binds a texture to the specified binding
+    void BindTexture(u32 binding, vk::ImageView image_view, vk::Sampler sampler);
+
+    /// Binds a storage image to the specified binding
+    void BindStorageImage(u32 binding, vk::ImageView image_view);
+
+    /// Binds a buffer to the specified binding
+    void BindBuffer(u32 binding, vk::Buffer buffer, u32 offset, u32 size);
+
+    /// Binds a buffer to the specified binding
+    void BindTexelBuffer(u32 binding, vk::BufferView buffer_view);
 
     /// Binds a resource to the provided binding
     void SetBinding(u32 set, u32 binding, DescriptorData data);
@@ -47,18 +56,21 @@ public:
     /// Builds descriptor sets that reference the currently bound resources
     void BindDescriptorSets();
 
-    /// Sets the dynamic offsets of the buffer at binding
-    void SetDynamicOffset(u32 binding, u32 new_offset) {
-        dynamic_offsets[binding] = new_offset;
+    /// Sets the dynamic offset for the uniform buffer at binding
+    void SetBufferOffset(u32 binding, u32 offset) {
+        dynamic_offsets[binding] = offset;
     }
 
+    /// Allocates an array of descriptor sets of the provided layout
+    std::vector<vk::DescriptorSet> AllocateSets(vk::DescriptorSetLayout layout, u32 num_sets);
+
     /// Allocates a descriptor set of the provided layout
-    [[nodiscard]] vk::DescriptorSet AllocateSet(vk::DescriptorSetLayout layout) {
+    vk::DescriptorSet AllocateSet(vk::DescriptorSetLayout layout) {
         return AllocateSets(layout, 1)[0];
     }
 
     /// Returns the rasterizer pipeline layout
-    [[nodiscard]] vk::PipelineLayout GetPipelineLayout() const noexcept {
+    vk::PipelineLayout GetPipelineLayout() const noexcept {
         return pipeline_layout;
     }
 
