@@ -364,13 +364,7 @@ void GMainWindow::InitializeWidgets() {
     graphics_api_button->setFocusPolicy(Qt::NoFocus);
     UpdateAPIIndicator();
 
-    connect(graphics_api_button, &QPushButton::clicked, this, [this] {
-        if (emulation_running) {
-            return;
-        }
-
-        UpdateAPIIndicator(true);
-    });
+    connect(graphics_api_button, &QPushButton::clicked, this, [this] { UpdateAPIIndicator(true); });
 
     statusBar()->insertPermanentWidget(0, graphics_api_button);
 
@@ -1740,6 +1734,7 @@ void GMainWindow::OnStartGame() {
     PreventOSSleep();
 
     emu_thread->SetRunning(true);
+    graphics_api_button->setEnabled(false);
     qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
     qRegisterMetaType<std::string>("std::string");
     connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
@@ -1749,6 +1744,7 @@ void GMainWindow::OnStartGame() {
     discord_rpc->Update();
 
     UpdateSaveStates();
+    UpdateAPIIndicator();
 }
 
 void GMainWindow::OnRestartGame() {
@@ -1779,7 +1775,9 @@ void GMainWindow::OnPauseContinueGame() {
 
 void GMainWindow::OnStopGame() {
     ShutdownGame();
+    graphics_api_button->setEnabled(true);
     Settings::RestoreGlobalState(false);
+    UpdateAPIIndicator();
 }
 
 void GMainWindow::OnLoadComplete() {
