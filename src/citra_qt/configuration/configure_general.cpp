@@ -11,6 +11,8 @@
 #include "citra_qt/uisettings.h"
 #include "common/file_util.h"
 #include "common/settings.h"
+#include "core/cheats/cheats.h"
+#include "core/core.h"
 #include "ui_configure_general.h"
 
 // The QSlider doesn't have an easy way to set a custom step amount,
@@ -77,6 +79,7 @@ void ConfigureGeneral::SetConfiguration() {
         ui->toggle_auto_update->setChecked(UISettings::values.update_on_close.GetValue());
     }
 
+    ui->toggle_enable_cheats->setChecked(Settings::values.enable_cheats.GetValue());
     if (Settings::values.frame_limit.GetValue() == 0) {
         ui->frame_limit->setValue(ui->frame_limit->maximum());
     } else {
@@ -164,6 +167,15 @@ void ConfigureGeneral::ApplyConfiguration() {
         &UISettings::values.screenshot_path, ui->screenshot_combo,
         [this](s32) { return ui->screenshot_dir_path->text().toStdString(); });
 
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.enable_cheats,
+                                             ui->toggle_enable_cheats, enable_cheats);
+
+    if (Core::System::GetInstance().IsPoweredOn() && ui->toggle_enable_cheats->isChecked()) {
+        Core::System::GetInstance().CheatEngine().Connect();
+    } else if (Core::System::GetInstance().IsPoweredOn()) {
+        Core::System::GetInstance().CheatEngine().Disconnect();
+    }
+
     if (Settings::IsConfiguringGlobal()) {
         UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
         UISettings::values.pause_when_in_background = ui->toggle_background_pause->isChecked();
@@ -171,6 +183,7 @@ void ConfigureGeneral::ApplyConfiguration() {
 
         UISettings::values.check_for_update_on_start = ui->toggle_update_check->isChecked();
         UISettings::values.update_on_close = ui->toggle_auto_update->isChecked();
+        Settings::values.enable_cheats = ui->toggle_enable_cheats->isChecked();
     }
 }
 
@@ -196,6 +209,9 @@ void ConfigureGeneral::SetupPerGameUI() {
         ui->change_screenshot_dir->setEnabled(index == 1);
         ConfigurationShared::SetHighlight(ui->widget_screenshot, index == 1);
     });
+
+    ConfigurationShared::SetColoredTristate(ui->toggle_enable_cheats,
+                                            Settings::values.enable_cheats, enable_cheats);
 
     ui->general_group->setVisible(false);
     ui->updateBox->setVisible(false);

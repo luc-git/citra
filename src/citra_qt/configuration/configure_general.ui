@@ -282,6 +282,22 @@
        </layout>
       </widget>
      </item>
+     <item>
+      <widget class="QGroupBox" name="cheatsBox">
+       <property name="title">
+        <string>Cheats</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QCheckBox" name="toggle_enable_cheats">
+          <property name="text">
+           <string>Enable Cheats</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
      <item alignment="Qt::AlignRight">
       <widget class="QPushButton" name="button_reset_defaults">
        <property name="text">

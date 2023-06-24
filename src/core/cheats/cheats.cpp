@@ -22,9 +22,6 @@ constexpr u64 run_interval_ticks = 50'000'000;
 CheatEngine::CheatEngine(u64 title_id_, Core::System& system_)
     : system(system_), title_id{title_id_} {
     LoadCheatFile();
-    if (system.IsPoweredOn()) {
-        Connect();
-    }
 }
 
 void CheatEngine::Connect() {
@@ -34,10 +31,14 @@ void CheatEngine::Connect() {
     system.CoreTiming().ScheduleEvent(run_interval_ticks, event);
 }
 
-CheatEngine::~CheatEngine() {
+void CheatEngine::Disconnect() {
     if (system.IsPoweredOn()) {
         system.CoreTiming().UnscheduleEvent(event, 0);
     }
+}
+
+CheatEngine::~CheatEngine() {
+    Disconnect();
 }
 
 std::vector<std::shared_ptr<CheatBase>> CheatEngine::GetCheats() const {

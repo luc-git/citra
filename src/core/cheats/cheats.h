@@ -27,6 +27,7 @@ public:
     explicit CheatEngine(u64 title_id_, Core::System& system);
     ~CheatEngine();
     void Connect();
+    void Disconnect();
     std::vector<std::shared_ptr<CheatBase>> GetCheats() const;
     void AddCheat(const std::shared_ptr<CheatBase>& cheat);
     void RemoveCheat(std::size_t index);

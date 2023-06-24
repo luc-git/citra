@@ -315,6 +315,9 @@ System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::st
                   static_cast<u32>(load_result));
     }
     cheat_engine = std::make_unique<Cheats::CheatEngine>(title_id, *this);
+    if (Settings::values.enable_cheats.GetValue()) {
+        cheat_engine->Connect();
+    }
     perf_stats = std::make_unique<PerfStats>(title_id);
 
     if (Settings::values.custom_textures) {
@@ -650,7 +653,9 @@ void System::serialize(Archive& ar, const unsigned int file_version) {
         timing->UnlockEventQueue();
         Service::GSP::SetGlobalModule(*this);
         memory->SetDSP(*dsp_core);
-        cheat_engine->Connect();
+        if (Settings::values.enable_cheats.GetValue()) {
+            cheat_engine->Connect();
+        }
         VideoCore::g_renderer->Sync();
     }
 }

@@ -29,4 +29,5 @@ public:
 
 private:
     std::unique_ptr<Ui::ConfigureGeneral> ui;
+    ConfigurationShared::CheckState enable_cheats;
 };

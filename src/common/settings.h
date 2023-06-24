@@ -515,6 +515,9 @@ struct Values {
     std::string audio_encoder;
     std::string audio_encoder_options;
     u64 audio_bitrate;
+
+    // Cheats
+    SwitchableSetting<bool> enable_cheats{true, "enable_cheats"};
 };
 
 extern Values values;

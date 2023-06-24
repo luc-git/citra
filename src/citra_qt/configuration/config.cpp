@@ -264,6 +264,7 @@ void Config::ReadValues() {
     ReadAudioValues();
     ReadSystemValues();
     ReadUtilityValues();
+    ReadCheatsValues();
 }
 
 void Config::ReadAudioValues() {
@@ -728,6 +729,14 @@ void Config::ReadVideoDumpingValues() {
     qt_config->endGroup();
 }
 
+void Config::ReadCheatsValues() {
+    qt_config->beginGroup(QStringLiteral("Cheats"));
+
+    ReadGlobalSetting(Settings::values.enable_cheats);
+
+    qt_config->endGroup();
+}
+
 void Config::ReadUIValues() {
     qt_config->beginGroup(QStringLiteral("UI"));
 
@@ -828,6 +837,7 @@ void Config::SaveValues() {
         SaveVideoDumpingValues();
     }
 
+    SaveCheatsValues();
     SaveUIValues();
     SaveCoreValues();
     SaveRendererValues();
@@ -1183,6 +1193,14 @@ void Config::SaveVideoDumpingValues() {
                  DEFAULT_AUDIO_ENCODER_OPTIONS);
     WriteSetting(QStringLiteral("audio_bitrate"),
                  static_cast<unsigned long long>(Settings::values.audio_bitrate), 64000);
+
+    qt_config->endGroup();
+}
+
+void Config::SaveCheatsValues() {
+    qt_config->beginGroup(QStringLiteral("Cheats"));
+
+    WriteGlobalSetting(Settings::values.enable_cheats);
 
     qt_config->endGroup();
 }
