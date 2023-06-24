@@ -484,7 +484,8 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
         window_frame->showFullScreen();
         foreground_window->move(main_window->pos());
         foreground_window->setFixedSize(main_window->size());
-        foreground_window->setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+        foreground_window->setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint |
+                                          Qt::FramelessWindowHint);
         foreground_window->show();
         if (parentWidget() == nullptr) {
             main_window->hide();
