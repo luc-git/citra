@@ -45,6 +45,7 @@ class QLabel;
 class QProgressBar;
 class QPushButton;
 class QSlider;
+class QHBoxLayout;
 class RegistersWidget;
 #if ENABLE_QT_UPDATER
 class Updater;
@@ -243,6 +244,8 @@ private slots:
     void OnSaveMovie();
     void OnCaptureScreenshot();
     void OnDumpVideo();
+    void OnDecreaseVolume();
+    void OnIncreaseVolume();
 #ifdef _WIN32
     void OnOpenFFmpeg();
 #endif
@@ -275,6 +278,8 @@ private:
     void ShowMouseCursor();
     void OpenPerGameConfiguration(u64 title_id, const QString& file_name);
     void UpdateAPIIndicator(bool update = false);
+    void UpdateVolumeUI();
+    void UpdateStatusButtons();
 
     std::unique_ptr<Ui::MainWindow> ui;
     Core::System& system;
@@ -293,6 +298,10 @@ private:
     QLabel* game_fps_label = nullptr;
     QLabel* emu_frametime_label = nullptr;
     QPushButton* graphics_api_button = nullptr;
+    QPushButton* filter_status_button = nullptr;
+    QPushButton* volume_button = nullptr;
+    QWidget* volume_popup = nullptr;
+    QSlider* volume_slider = nullptr;
     QTimer status_bar_update_timer;
     bool message_label_used_for_movie = false;
 
