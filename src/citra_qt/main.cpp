@@ -365,7 +365,50 @@ void GMainWindow::InitializeWidgets() {
         statusBar()->addPermanentWidget(label);
     }
 
-    // Setup Volume Filter
+    // Setup Filter button
+    filter_status_button = new QPushButton();
+    filter_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
+    filter_status_button->setFocusPolicy(Qt::NoFocus);
+    connect(filter_status_button, &QPushButton::clicked, [&] {
+        auto filter = Settings::values.texture_filter.GetValue();
+        if (filter == Settings::TextureFilter::LastFilter) {
+            filter = Settings::TextureFilter::None;
+        } else {
+            filter = static_cast<Settings::TextureFilter>(static_cast<u32>(filter) + 1);
+        }
+        Settings::values.texture_filter.SetValue(filter);
+        filter_status_button->setChecked(true);
+        UpdateFilterText();
+    });
+    UpdateFilterText();
+    filter_status_button->setCheckable(true);
+    statusBar()->insertPermanentWidget(0, filter_status_button);
+
+    // Setup Graphics API button
+    graphics_api_button = new QPushButton();
+    graphics_api_button->setObjectName(QStringLiteral("GraphicsAPIStatusBarButton"));
+    graphics_api_button->setFocusPolicy(Qt::NoFocus);
+    UpdateAPIIndicator();
+
+    connect(graphics_api_button, &QPushButton::clicked, this, [this] { UpdateAPIIndicator(true); });
+
+    statusBar()->insertPermanentWidget(0, graphics_api_button);
+
+    statusBar()->addPermanentWidget(multiplayer_state->GetStatusText());
+    statusBar()->addPermanentWidget(multiplayer_state->GetStatusIcon());
+
+    statusBar()->setVisible(true);
+
+    // Removes an ugly inner border from the status bar widgets under Linux
+    setStyleSheet(QStringLiteral("QStatusBar::item{border: none;}"));
+
+    QActionGroup* actionGroup_ScreenLayouts = new QActionGroup(this);
+    actionGroup_ScreenLayouts->addAction(ui->action_Screen_Layout_Default);
+    actionGroup_ScreenLayouts->addAction(ui->action_Screen_Layout_Single_Screen);
+    actionGroup_ScreenLayouts->addAction(ui->action_Screen_Layout_Large_Screen);
+    actionGroup_ScreenLayouts->addAction(ui->action_Screen_Layout_Hybrid_Screen);
+    actionGroup_ScreenLayouts->addAction(ui->action_Screen_Layout_Side_by_Side);
+    actionGroup_ScreenLayouts->addAction(ui->action_Screen_Layout_Separate_Windows);
     volume_popup = new QWidget(this);
     volume_popup->setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
     volume_popup->setLayout(new QVBoxLayout());
@@ -396,6 +439,24 @@ void GMainWindow::InitializeWidgets() {
         bottomLeft.setY(bottomLeft.y() - volume_popup->geometry().height());
         volume_popup->setGeometry(QRect(bottomLeft, QSize(rect.width(), rect.height())));
     });
+    volume_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(volume_button, &QPushButton::customContextMenuRequested,
+            [this](const QPoint& menu_location) {
+                QMenu context_menu;
+                context_menu.addAction(
+                    Settings::values.audio_muted ? tr("Unmute") : tr("Mute"), [this] {
+                        Settings::values.audio_muted = !Settings::values.audio_muted;
+                        UpdateVolumeUI();
+                    });
+
+                context_menu.addAction(tr("Reset Volume"), [this] {
+                    Settings::values.volume.SetValue(100);
+                    UpdateVolumeUI();
+                });
+
+                context_menu.exec(volume_button->mapToGlobal(menu_location));
+                volume_button->repaint();
+            });
     statusBar()->insertPermanentWidget(0, volume_button);
 
     // Setup Filter button
@@ -409,12 +470,17 @@ void GMainWindow::InitializeWidgets() {
         } else {
             filter = static_cast<Settings::TextureFilter>(static_cast<u32>(filter) + 1);
         }
-        Settings::values.texture_filter.SetValue(filter);
+        Settings::values.texture_filter = filter;
+        if (VideoCore::g_renderer) {
+            VideoCore::g_renderer->Settings().texture_filter_update_requested = true;
+        }
         filter_status_button->setChecked(true);
         UpdateFilterText();
     });
     UpdateFilterText();
     filter_status_button->setCheckable(true);
+    filter_status_button->setChecked(true);
+    filter_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
     statusBar()->insertPermanentWidget(0, filter_status_button);
 
     // Setup Graphics API button
@@ -424,6 +490,22 @@ void GMainWindow::InitializeWidgets() {
     UpdateAPIIndicator();
 
     connect(graphics_api_button, &QPushButton::clicked, this, [this] { UpdateAPIIndicator(true); });
+
+    graphics_api_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(graphics_api_button, &QPushButton::customContextMenuRequested,
+            [this](const QPoint& menu_location) {
+                QMenu context_menu;
+
+                for (auto const& renderer_backend_pair : Config::renderer_backend_texts_map) {
+                    context_menu.addAction(
+                        renderer_backend_pair.second, [this, renderer_backend_pair] {
+                            Settings::values.graphics_api.SetValue(renderer_backend_pair.first);
+                            UpdateAPIIndicator();
+                        });
+                }
+                context_menu.exec(graphics_api_button->mapToGlobal(menu_location));
+                graphics_api_button->repaint();
+            });
 
     statusBar()->insertPermanentWidget(0, graphics_api_button);
 
@@ -2521,6 +2603,14 @@ void GMainWindow::UpdateAPIIndicator(bool update) {
 void GMainWindow::UpdateStatusButtons() {
     UpdateAPIIndicator();
     UpdateVolumeUI();
+    UpdateFilterText();
+}
+
+void GMainWindow::UpdateFilterText() {
+    const auto filter = Settings::values.texture_filter.GetValue();
+    const auto filter_text = Config::scaling_filter_texts_map.find(filter)->second;
+    filter_status_button->setText(filter == Settings::TextureFilter::None ? tr("NONE")
+                                                                          : filter_text.toUpper());
 }
 
 void GMainWindow::OnMouseActivity() {

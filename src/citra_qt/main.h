@@ -280,6 +280,7 @@ private:
     void UpdateAPIIndicator(bool update = false);
     void UpdateVolumeUI();
     void UpdateStatusButtons();
+    void UpdateFilterText();
 
     std::unique_ptr<Ui::MainWindow> ui;
     Core::System& system;
