@@ -365,6 +365,30 @@ void GMainWindow::InitializeWidgets() {
 
     UpdateBootHomeMenuState();
 
+    // Setup Filter button
+    filter_status_button = new QPushButton();
+    filter_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
+    filter_status_button->setFocusPolicy(Qt::NoFocus);
+    connect(filter_status_button, &QPushButton::clicked, [&] {
+        auto filter = Settings::values.texture_filter.GetValue();
+        if (filter == Settings::TextureFilter::LastFilter) {
+            filter = Settings::TextureFilter::None;
+        } else {
+            filter = static_cast<Settings::TextureFilter>(static_cast<u32>(filter) + 1);
+        }
+        Settings::values.texture_filter = filter;
+        if (VideoCore::g_renderer) {
+            VideoCore::g_renderer->Settings().texture_filter_update_requested = true;
+        }
+        filter_status_button->setChecked(true);
+        UpdateFilterText();
+    });
+    UpdateFilterText();
+    filter_status_button->setCheckable(true);
+    filter_status_button->setChecked(true);
+    filter_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    statusBar()->insertPermanentWidget(0, filter_status_button);
+
     // Create status bar
     message_label = new QLabel();
     // Configured separately for left alignment
@@ -2478,6 +2502,38 @@ void GMainWindow::UpdateAPIIndicator(bool update) {
 
     graphics_api_button->setText(graphics_apis[api_index]);
     graphics_api_button->setStyleSheet(style_sheet);
+}
+
+void GMainWindow::UpdateFilterText() {
+    const auto filter = Settings::values.texture_filter.GetValue();
+    switch (filter) {
+    case Settings::TextureFilter::NearestNeighbor:
+        filter_status_button->setText(tr("NEAREST"));
+        break;
+    case Settings::TextureFilter::MMPX:
+        filter_status_button->setText(tr("MMPX"));
+        break;
+    case Settings::TextureFilter::Bicubic:
+        filter_status_button->setText(tr("BICUBIC"));
+        break;
+    case Settings::TextureFilter::Anime4K:
+        filter_status_button->setText(tr("Anime4K"));
+        break;
+    case Settings::TextureFilter::ScaleForce:
+        filter_status_button->setText(tr("SCALEFORCE"));
+        break;
+    case Settings::TextureFilter::xBRZ:
+        filter_status_button->setText(tr("xBRZ"));
+        break;
+    default:
+        filter_status_button->setText(tr("NONE"));
+        break;
+    }
+}
+
+void GMainWindow::UpdateStatusButtons() {
+    UpdateAPIIndicator();
+    UpdateFilterText();
 }
 
 void GMainWindow::OnMouseActivity() {
