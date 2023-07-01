@@ -481,6 +481,22 @@ void GMainWindow::InitializeWidgets() {
     filter_status_button->setCheckable(true);
     filter_status_button->setChecked(true);
     filter_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(filter_status_button, &QPushButton::customContextMenuRequested,
+            [this](const QPoint& menu_location) {
+                QMenu context_menu;
+                for (auto const& filter_text_pair : Config::scaling_filter_texts_map) {
+                    context_menu.addAction(filter_text_pair.second, [this, filter_text_pair] {
+                        Settings::values.texture_filter.SetValue(filter_text_pair.first);
+                        if (VideoCore::g_renderer) {
+                            VideoCore::g_renderer->Settings().texture_filter_update_requested =
+                                true;
+                        }
+                        UpdateFilterText();
+                    });
+                }
+                context_menu.exec(filter_status_button->mapToGlobal(menu_location));
+                filter_status_button->repaint();
+            });
     statusBar()->insertPermanentWidget(0, filter_status_button);
 
     // Setup Graphics API button

@@ -49,6 +49,24 @@ const std::array<std::array<int, 5>, Settings::NativeAnalog::NumAnalogs> Config:
     },
 }};
 
+const std::map<Settings::TextureFilter, QString> Config::scaling_filter_texts_map = {
+    {Settings::TextureFilter::NearestNeighbor,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Nearest"))},
+    {Settings::TextureFilter::Anime4K, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Anime4K"))},
+    {Settings::TextureFilter::Bicubic, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Bicubic"))},
+    {Settings::TextureFilter::MMPX, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "MMPX"))},
+    {Settings::TextureFilter::ScaleForce,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "ScaleForce"))},
+    {Settings::TextureFilter::xBRZ, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "xBRZ"))},
+    {Settings::TextureFilter::None, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "None"))}};
+
+const std::map<Settings::GraphicsAPI, QString> Config::renderer_backend_texts_map = {
+    //{Settings::GraphicsAPI::Vulkan, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Vulkan"))},
+    // To uncomment when vulkan backend is available
+    {Settings::GraphicsAPI::OpenGL, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "OpenGL"))},
+    {Settings::GraphicsAPI::Software, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Software"))},
+};
+
 // This shouldn't have anything except static initializers (no functions). So
 // QKeySequence(...).toString() is NOT ALLOWED HERE.
 // This must be in alphabetical order according to action name as it must have the same order as

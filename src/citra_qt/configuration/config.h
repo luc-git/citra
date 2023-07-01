@@ -28,6 +28,9 @@ public:
     static const std::array<std::array<int, 5>, Settings::NativeAnalog::NumAnalogs> default_analogs;
     static const std::array<UISettings::Shortcut, 30> default_hotkeys;
 
+    static const std::map<Settings::TextureFilter, QString> scaling_filter_texts_map;
+    static const std::map<Settings::GraphicsAPI, QString> renderer_backend_texts_map;
+
 private:
     void Initialize(const std::string& config_name);
 
