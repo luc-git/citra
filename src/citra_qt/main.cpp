@@ -418,10 +418,10 @@ void GMainWindow::InitializeWidgets() {
     volume_slider->setObjectName(QStringLiteral("volume_slider"));
     volume_slider->setMaximum(100);
     volume_slider->setPageStep(5);
-    connect(volume_slider, &QSlider::sliderMoved, this, [this](int percentage) {
+    connect(volume_slider, &QSlider::valueChanged, this, [this](int percentage) {
         Settings::values.audio_muted = false;
         const auto volume = percentage * 0.01f;
-        Settings::values.volume.SetValue(volume);
+        Settings::values.volume = volume;
         UpdateVolumeUI();
     });
     volume_popup->layout()->addWidget(volume_slider);
@@ -450,7 +450,7 @@ void GMainWindow::InitializeWidgets() {
                     });
 
                 context_menu.addAction(tr("Reset Volume"), [this] {
-                    Settings::values.volume.SetValue(100);
+                    Settings::values.volume = 100;
                     UpdateVolumeUI();
                 });
 
@@ -486,7 +486,7 @@ void GMainWindow::InitializeWidgets() {
                 QMenu context_menu;
                 for (auto const& filter_text_pair : Config::scaling_filter_texts_map) {
                     context_menu.addAction(filter_text_pair.second, [this, filter_text_pair] {
-                        Settings::values.texture_filter.SetValue(filter_text_pair.first);
+                        Settings::values.texture_filter = filter_text_pair.first;
                         if (VideoCore::g_renderer) {
                             VideoCore::g_renderer->Settings().texture_filter_update_requested =
                                 true;
@@ -514,10 +514,8 @@ void GMainWindow::InitializeWidgets() {
 
                 for (auto const& renderer_backend_pair : Config::renderer_backend_texts_map) {
                     context_menu.addAction(
-                        renderer_backend_pair.second, [this, renderer_backend_pair] {
-                            Settings::values.graphics_api.SetValue(renderer_backend_pair.first);
-                            UpdateAPIIndicator();
-                        });
+                        renderer_backend_pair.second,
+                        [this, renderer_backend_pair] { UpdateAPIIndicator(true); });
                 }
                 context_menu.exec(graphics_api_button->mapToGlobal(menu_location));
                 graphics_api_button->repaint();
@@ -2243,8 +2241,8 @@ void GMainWindow::OnToggleFilterBar() {
 }
 
 void GMainWindow::UpdateVolumeUI() {
-    const auto volume_value = static_cast<s32>(
-        static_cast<s32>(Settings::values.volume.GetValue() * volume_slider->maximum()));
+    const float volume_value = static_cast<float>(
+        std::round(Settings::values.volume.GetValue() * volume_slider->maximum()));
     volume_slider->setValue(volume_value);
     if (Settings::values.audio_muted) {
         volume_button->setChecked(false);
@@ -2935,7 +2933,7 @@ void GMainWindow::OnDecreaseVolume() {
     if (current_volume <= 0.06f) {
         step = 0.01f;
     }
-    Settings::values.volume.SetValue(current_volume - step);
+    Settings::values.volume = current_volume - step;
     UpdateVolumeUI();
 }
 
@@ -2949,7 +2947,7 @@ void GMainWindow::OnIncreaseVolume() {
     if (current_volume < 0.06f) {
         step = 0.01f;
     }
-    Settings::values.volume.SetValue(current_volume + step);
+    Settings::values.volume = current_volume + step;
     UpdateVolumeUI();
 }
 
