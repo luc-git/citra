@@ -118,6 +118,8 @@ public:
     /// Shutdown the emulated system.
     void Shutdown(bool is_deserializing = false);
 
+    void NewCheatEngine(u64 title_id);
+
     /// Shutdown and then load again
     void Reset();
 

@@ -572,6 +572,10 @@ void System::Shutdown(bool is_deserializing) {
     LOG_DEBUG(Core, "Shutdown OK");
 }
 
+void System::NewCheatEngine(u64 title_id) {
+    cheat_engine = std::make_unique<Cheats::CheatEngine>(title_id, *this);
+}
+
 void System::Reset() {
     // This is NOT a proper reset, but a temporary workaround by shutting down the system and
     // reloading.

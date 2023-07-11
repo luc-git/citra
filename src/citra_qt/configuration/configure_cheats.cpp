@@ -13,8 +13,8 @@
 #include "core/hle/kernel/process.h"
 #include "ui_configure_cheats.h"
 
-ConfigureCheats::ConfigureCheats(u64 title_id_, QWidget* parent)
-    : QWidget(parent), ui(std::make_unique<Ui::ConfigureCheats>()), title_id{title_id_} {
+ConfigureCheats::ConfigureCheats(QWidget* parent)
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureCheats>()) {
     // Setup gui control settings
     ui->setupUi(this);
     ui->tableCheats->setColumnWidth(0, 30);
@@ -36,15 +36,13 @@ ConfigureCheats::ConfigureCheats(u64 title_id_, QWidget* parent)
             [this] { SaveCheat(ui->tableCheats->currentRow()); });
     connect(ui->buttonDelete, &QPushButton::clicked, this, &ConfigureCheats::OnDeleteCheat);
 
-    cheat_engine = std::make_unique<Cheats::CheatEngine>(title_id, Core::System::GetInstance());
-
     LoadCheats();
 }
 
 ConfigureCheats::~ConfigureCheats() = default;
 
 void ConfigureCheats::LoadCheats() {
-    cheats = cheat_engine->GetCheats();
+    cheats = Core::System::GetInstance().CheatEngine().GetCheats();
     const int cheats_count = static_cast<int>(cheats.size());
 
     ui->tableCheats->setRowCount(cheats_count);
@@ -108,12 +106,12 @@ bool ConfigureCheats::SaveCheat(int row) {
                                                         ui->textNotes->toPlainText().toStdString());
 
     if (newly_created) {
-        cheat_engine->AddCheat(cheat);
+        Core::System::GetInstance().CheatEngine().AddCheat(cheat);
         newly_created = false;
     } else {
-        cheat_engine->UpdateCheat(row, cheat);
+        Core::System::GetInstance().CheatEngine().UpdateCheat(row, cheat);
     }
-    cheat_engine->SaveCheatFile();
+    Core::System::GetInstance().CheatEngine().SaveCheatFile();
 
     int previous_row = ui->tableCheats->currentRow();
     int previous_col = ui->tableCheats->currentColumn();
@@ -163,7 +161,7 @@ void ConfigureCheats::OnCheckChanged(int state) {
     const QCheckBox* checkbox = qobject_cast<QCheckBox*>(sender());
     int row = static_cast<int>(checkbox->property("row").toInt());
     cheats[row]->SetEnabled(state);
-    cheat_engine->SaveCheatFile();
+    Core::System::GetInstance().CheatEngine().SaveCheatFile();
 }
 
 void ConfigureCheats::OnTextEdited() {
@@ -175,8 +173,8 @@ void ConfigureCheats::OnDeleteCheat() {
     if (newly_created) {
         newly_created = false;
     } else {
-        cheat_engine->RemoveCheat(ui->tableCheats->currentRow());
-        cheat_engine->SaveCheatFile();
+        Core::System::GetInstance().CheatEngine().RemoveCheat(ui->tableCheats->currentRow());
+        Core::System::GetInstance().CheatEngine().SaveCheatFile();
     }
 
     LoadCheats();

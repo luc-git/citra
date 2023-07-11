@@ -1637,6 +1637,7 @@ void GMainWindow::OnGameListOpenPerGameProperties(const QString& file) {
         return;
     }
 
+    system.NewCheatEngine(title_id);
     OpenPerGameConfiguration(title_id, file);
 }
 
