@@ -2170,8 +2170,8 @@ void GMainWindow::OnToggleFilterBar() {
 }
 
 void GMainWindow::UpdateVolumeUI() {
-    const auto volume_value = static_cast<s32>(
-        static_cast<s32>(Settings::values.volume.GetValue() * volume_slider->maximum()));
+    const s32 volume_value =
+        static_cast<s32>(Settings::values.volume.GetValue() * volume_slider->maximum());
     volume_slider->setValue(volume_value);
     if (Settings::values.audio_muted) {
         volume_button->setChecked(false);

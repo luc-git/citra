@@ -63,8 +63,8 @@ void ConfigureAudio::SetConfiguration() {
 
     ui->toggle_audio_stretching->setChecked(Settings::values.enable_audio_stretching.GetValue());
 
-    const float volume = static_cast<float>(
-        std::round(Settings::values.volume.GetValue() * ui->volume_slider->maximum()));
+    const s32 volume =
+        static_cast<s32>(Settings::values.volume.GetValue() * ui->volume_slider->maximum());
     ui->volume_slider->setValue(volume);
     SetVolumeIndicatorText(ui->volume_slider->sliderPosition());
 
