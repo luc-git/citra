@@ -416,8 +416,8 @@ void GMainWindow::InitializeWidgets() {
     volume_slider->setPageStep(5);
     connect(volume_slider, &QSlider::valueChanged, this, [this](int percentage) {
         Settings::values.audio_muted = false;
-        const auto volume = percentage * 0.01f;
-        Settings::values.volume = volume;
+        const auto volume = static_cast<float>(percentage) / volume_slider->maximum();
+        Settings::values.volume.SetValue(volume);
         UpdateVolumeUI();
     });
     volume_popup->layout()->addWidget(volume_slider);
@@ -2836,6 +2836,7 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const QString& file_nam
         return;
     } else if (result == QDialog::Accepted) {
         dialog.ApplyConfiguration();
+        UpdateStatusButtons();
     }
 
     // Do not cause the global config to write local settings into the config file
