@@ -30,6 +30,15 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const QString
     const auto config_file_name = title_id == 0 ? std::string(FileUtil::GetFilename(filename))
                                                 : fmt::format("{:016X}", title_id);
     game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
+                                   Core::System& system_, Config& game_config_pergame)
+    : QDialog(parent),
+      ui(std::make_unique<Ui::ConfigurePerGame>()), filename{file_name.toStdString()},
+      title_id{title_id_}, game_config_{game_config_pergame}, system{system_} {
+    const auto config_file_name = title_id == 0 ? std::string(FileUtil::GetFilename(filename))
+                                                : fmt::format("{:016X}", title_id);
+    if (!system_.IsPoweredOn()) {
+        game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
+    }
 
     const bool is_powered_on = system.IsPoweredOn();
     audio_tab = std::make_unique<ConfigureAudio>(is_powered_on, this);
@@ -107,7 +116,11 @@ void ConfigurePerGame::ApplyConfiguration() {
     system.ApplySettings();
     Settings::LogSettings();
 
-    game_config->Save();
+    if (!system.IsPoweredOn()) {
+        game_config->Save();
+    } else {
+        game_config_.Save();
+    }
 }
 
 void ConfigurePerGame::changeEvent(QEvent* event) {

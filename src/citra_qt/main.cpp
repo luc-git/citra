@@ -35,6 +35,7 @@
 #include "citra_qt/compatdb.h"
 #include "citra_qt/compatibility_list.h"
 #include "citra_qt/configuration/config.h"
+#include "citra_qt/configuration/configuration_shared.h"
 #include "citra_qt/configuration/configure_dialog.h"
 #include "citra_qt/configuration/configure_per_game.h"
 #include "citra_qt/debugger/console.h"
@@ -1340,6 +1341,8 @@ void GMainWindow::ShutdownGame() {
 
     discord_rpc->Pause();
     emu_thread->RequestStop();
+    config_pergame->Save();
+    config_pergame.reset();
 
     // Release emu threads from any breakpoints
     // This belongs after RequestStop() and before wait() because if emulation stops on a GPU
@@ -1820,6 +1823,12 @@ void GMainWindow::OnStartGame() {
     UpdateMenuState();
 
     discord_rpc->Update();
+    u64 title_id{};
+    system.GetAppLoader().ReadProgramId(title_id);
+    const auto config_file_name = title_id == 0
+                                      ? std::string(FileUtil::GetFilename(game_path.toStdString()))
+                                      : fmt::format("{:016X}", title_id);
+    config_pergame = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
 
     UpdateSaveStates();
     UpdateStatusButtons();
@@ -2829,6 +2838,7 @@ void GMainWindow::OnConfigurePerGame() {
 void GMainWindow::OpenPerGameConfiguration(u64 title_id, const QString& file_name) {
     Settings::SetConfiguringGlobal(false);
     ConfigurePerGame dialog(this, title_id, file_name, physical_devices, system);
+    ConfigurePerGame dialog(this, title_id, file_name, system, *config_pergame);
     const auto result = dialog.exec();
 
     if (result != QDialog::Accepted) {

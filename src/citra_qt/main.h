@@ -306,6 +306,7 @@ private:
 
     MultiplayerState* multiplayer_state = nullptr;
     std::unique_ptr<Config> config;
+    std::unique_ptr<Config> config_pergame;
 
     // Whether emulation is currently running in Citra.
     bool emulation_running = false;

@@ -38,6 +38,7 @@ class ConfigurePerGame : public QDialog {
 
 public:
     explicit ConfigurePerGame(QWidget* parent, u64 title_id_, const QString& file_name,
+                              Core::System& system_, Config& game_config_pergame);
                               std::span<const QString> physical_devices, Core::System& system_);
     ~ConfigurePerGame() override;
 
@@ -64,6 +65,7 @@ private:
     QGraphicsScene* scene;
 
     std::unique_ptr<Config> game_config;
+    Config& game_config_;
 
     Core::System& system;
 
