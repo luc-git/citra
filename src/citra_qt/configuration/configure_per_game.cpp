@@ -24,23 +24,21 @@
 #include "ui_configure_per_game.h"
 
 ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const QString& file_name,
-                                   std::span<const QString> physical_devices, Core::System& system_)
-    : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()),
-      filename{file_name.toStdString()}, title_id{title_id_}, system{system_} {
-    const auto config_file_name = title_id == 0 ? std::string(FileUtil::GetFilename(filename))
-                                                : fmt::format("{:016X}", title_id);
-    game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
-                                   Core::System& system_, Config& game_config_pergame)
+                                   std::span<const QString> physical_devices, Core::System& system_,
+                                   Config& game_config_pergame)
+
     : QDialog(parent),
       ui(std::make_unique<Ui::ConfigurePerGame>()), filename{file_name.toStdString()},
       title_id{title_id_}, game_config_{game_config_pergame}, system{system_} {
     const auto config_file_name = title_id == 0 ? std::string(FileUtil::GetFilename(filename))
                                                 : fmt::format("{:016X}", title_id);
-    if (!system_.IsPoweredOn()) {
+
+    const bool is_powered_on = system.IsPoweredOn();
+
+    if (!is_powered_on) {
         game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
     }
 
-    const bool is_powered_on = system.IsPoweredOn();
     audio_tab = std::make_unique<ConfigureAudio>(is_powered_on, this);
     general_tab = std::make_unique<ConfigureGeneral>(this);
     enhancements_tab = std::make_unique<ConfigureEnhancements>(this);

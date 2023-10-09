@@ -2837,8 +2837,7 @@ void GMainWindow::OnConfigurePerGame() {
 
 void GMainWindow::OpenPerGameConfiguration(u64 title_id, const QString& file_name) {
     Settings::SetConfiguringGlobal(false);
-    ConfigurePerGame dialog(this, title_id, file_name, physical_devices, system);
-    ConfigurePerGame dialog(this, title_id, file_name, system, *config_pergame);
+    ConfigurePerGame dialog(this, title_id, file_name, physical_devices, system, *config_pergame);
     const auto result = dialog.exec();
 
     if (result != QDialog::Accepted) {
