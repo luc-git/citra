@@ -51,7 +51,7 @@ The [Nightly](https://github.com/bobleblob123/citra-nightly) build is based on t
 
 The [Canary](https://github.com/bobleblob123/citra-canary) build is based on the master branch, but with additional features still under review. PRs tagged `canary-merge` are merged only into the Canary builds.
 
-Both builds can be installed with the installer provided on the [website](https://citra-emu.org/download/), but those looking for specific versions or standalone releases can find them in the release tabs of the [Nightly](https://github.com/citra-emu/citra-nightly/releases) and [Canary](https://github.com/citra-emu/citra-canary/releases) repositories.
+Both builds can be installed with the installer provided on the [website](https://web.archive.org/web/20240304202046/https://citra-emu.org/download/), but those looking for specific versions or standalone releases can find them in the release tabs of the [Nightly](https://github.com/citra-emu/citra-nightly/releases) and [Canary](https://github.com/citra-emu/citra-canary/releases) repositories.
 
 Android builds can be downloaded from the Google Play Store.
 
@@ -59,10 +59,10 @@ A Flatpak for Citra is available on [Flathub](https://flathub.org/apps/details/o
 
 ## Development
 
-Most of the development happens on GitHub. It's also where [our central repository](https://github.com/citra-emu/citra) is hosted.
+Most of the development happens on GitHub. It's also where [our central repository](https://github.com/bobleblob123/citra) is hosted.
 For development discussion, please join us on our [Discord server](https://citra-emu.org/discord/) or at #citra-dev on libera.
 
-If you want to contribute please take a look at the [Contributor's Guide](https://github.com/citra-emu/citra/wiki/Contributing) and [Developer Information](https://github.com/citra-emu/citra/wiki/Developer-Information). You can also contact any of the developers on Discord in order to know about the current state of the emulator.
+If you want to contribute please take a look at the [Contributor's Guide](https://github.com/bobleblob123/citra/wiki/Contributing) and [Developer Information](https://github.com/citra-emu/citra/wiki/Developer-Information). You can also contact any of the developers on Discord in order to know about the current state of the emulator.
 
 If you want to contribute to the user interface translation, please check out the [Citra project on transifex](https://www.transifex.com/citra/citra). We centralize the translation work there, and periodically upstream translations.
 
