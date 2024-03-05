@@ -47,9 +47,9 @@ Need help? Check out our [asking for help](https://citra-emu.org/help/reference/
 
 Citra has two main release channels: Nightly and Canary.
 
-The [Nightly](https://github.com/citra-emu/citra-nightly) build is based on the master branch, and contains already reviewed and tested features.
+The [Nightly](https://github.com/bobleblob123/citra-nightly) build is based on the master branch, and contains already reviewed and tested features.
 
-The [Canary](https://github.com/citra-emu/citra-canary) build is based on the master branch, but with additional features still under review. PRs tagged `canary-merge` are merged only into the Canary builds.
+The [Canary](https://github.com/bobleblob123/citra-canary) build is based on the master branch, but with additional features still under review. PRs tagged `canary-merge` are merged only into the Canary builds.
 
 Both builds can be installed with the installer provided on the [website](https://citra-emu.org/download/), but those looking for specific versions or standalone releases can find them in the release tabs of the [Nightly](https://github.com/citra-emu/citra-nightly/releases) and [Canary](https://github.com/citra-emu/citra-canary/releases) repositories.
 
@@ -68,10 +68,10 @@ If you want to contribute to the user interface translation, please check out th
 
 ## Building
 
-* __Windows__: [Windows Build](https://github.com/citra-emu/citra/wiki/Building-For-Windows)
-* __Linux__: [Linux Build](https://github.com/citra-emu/citra/wiki/Building-For-Linux)
-* __macOS__: [macOS Build](https://github.com/citra-emu/citra/wiki/Building-for-macOS)
-* __Android__: [Android Build](https://github.com/citra-emu/citra/wiki/Building-for-Android)
+* __Windows__: [Windows Build](https://github.com/bobleblob123/citra/wiki/Building-For-Windows)
+* __Linux__: [Linux Build](https://github.com/bobleblob123/citra/wiki/Building-For-Linux)
+* __macOS__: [macOS Build](https://github.com/bobleblob123/citra/wiki/Building-for-macOS)
+* __Android__: [Android Build](https://github.com/bobleblob123/citra/wiki/Building-for-Android)
 
 
 ## Support
